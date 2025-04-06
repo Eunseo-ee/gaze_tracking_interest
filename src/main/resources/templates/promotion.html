@@ -26,13 +26,19 @@
 <div class="container-fluid bg-white shadow-sm">
     <ul class="nav justify-content-center">
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab} == 'promotion' ? ' active' : ''" href="/promotion">Promotion</a>
+            <a class="nav-link"
+               th:href="@{'/store/' + ${storeCode} + '/promotion'}"
+               th:classappend="${activeTab} == 'promotion' ? ' active' : ''">Promotion</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab} == 'rankings' ? ' active' : ''" href="/rankings">Rankings</a>
+            <a class="nav-link"
+               th:href="@{'/store/' + ${storeCode} + '/rankings'}"
+               th:classappend="${activeTab} == 'rankings' ? ' active' : ''">Rankings</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab} == 'owner' ? ' active' : ''" href="/owner">Owner</a>
+            <a class="nav-link"
+               th:href="@{'/store/' + ${storeCode} + '/owner'}"
+               th:classappend="${activeTab} == 'owner' ? ' active' : ''">Owner</a>
         </li>
     </ul>
 </div>

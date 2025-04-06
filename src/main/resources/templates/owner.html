@@ -27,25 +27,46 @@
 <div class="container-fluid bg-white shadow-sm">
     <ul class="nav justify-content-center">
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab} == 'promotion' ? ' active' : ''" href="/promotion">Promotion</a>
+            <a class="nav-link"
+               th:href="@{'/store/' + ${storeCode} + '/promotion'}"
+               th:classappend="${activeTab} == 'promotion' ? ' active' : ''">Promotion</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab} == 'rankings' ? ' active' : ''" href="/rankings">Rankings</a>
+            <a class="nav-link"
+               th:href="@{'/store/' + ${storeCode} + '/rankings'}"
+               th:classappend="${activeTab} == 'rankings' ? ' active' : ''">Rankings</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab} == 'owner' ? ' active' : ''" href="/owner">Owner</a>
+            <a class="nav-link"
+               th:href="@{'/store/' + ${storeCode} + '/owner'}"
+               th:classappend="${activeTab} == 'owner' ? ' active' : ''">Owner</a>
         </li>
     </ul>
 </div>
 
 <!-- 콘텐츠 -->
 <div class="container mt-4">
-    <h3>Owner page</h3>
+    <input type="password" placeholder="비밀번호 입력" id="passwordInput" />
+    <button onclick="submitPassword()">확인</button>
+    <p><a href="#" onclick="showBizVerification()">아직 점주 인증을 하지 않으셨나요?</a></p>
+
+    <div id="bizVerificationForm" style="display:none">
+        <h3>사업자 인증</h3>
+        <input type="text" id="bizNumInput" placeholder="사업자번호 입력">
+        <button onclick="verifyBiz()">인증하기</button>
+    </div>
+
+    <!-- 비밀번호 설정 폼 -->
+    <div id="passwordSetForm" style="display: none; margin-top: 10px;">
+        <input type="password" id="newPassword" placeholder="비밀번호 설정" />
+        <button onclick="savePassword()">비밀번호 저장</button>
+        <p id="savePasswordMsg"></p>
+    </div>
 </div>
 
 </body>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="/js/owner_verification.js"></script>
 </html>

@@ -2,8 +2,10 @@ package capstone.project.gaze_tracking_interest;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
+@EnableJpaRepositories("capstone.project.gaze_tracking_interest.repository")
 public class GazeTrackingInterestApplication {
 
 	public static void main(String[] args) {
