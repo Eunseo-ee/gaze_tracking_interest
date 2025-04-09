@@ -11,5 +11,5 @@ public class GazeTrackingInterestApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(GazeTrackingInterestApplication.class, args);
 	}
-
+	//연동 잘 됐는지 궁금해서 달아본 주석
 }
