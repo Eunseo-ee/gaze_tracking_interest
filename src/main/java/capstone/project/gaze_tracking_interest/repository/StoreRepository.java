@@ -1,3 +1,5 @@
+package capstone.project.gaze_tracking_interest.repository;
+
 import capstone.project.gaze_tracking_interest.entity.Store;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
