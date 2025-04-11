@@ -8,7 +8,7 @@ function submitPassword() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            storeCode: getStoreCode(),  // 추출한 storeCode 사용
+            storeCode: getStoreCodeFromURL(),  // 추출한 storeCode 사용
             password: password
         })
     }).then(res => {
@@ -53,6 +53,7 @@ function verifyBiz() {
         .then(data => {
             if (data.verified) {
                 alert("사업자 인증 성공!");
+                document.getElementById("passwordSetForm").style.display = "block"; // ✅ 비번폼 보여주기
             } else {
                 alert("사업자번호가 일치하지 않습니다.");
             }
@@ -63,14 +64,13 @@ function verifyBiz() {
 }
 
 function savePassword() {
-    const bizNum = document.getElementById("bizNum").value;
     const newPassword = document.getElementById("newPassword").value;
 
     fetch('/api/set-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            businessNumber: bizNum,
+            storeCode: getStoreCodeFromURL(),
             password: newPassword
         })
     })
