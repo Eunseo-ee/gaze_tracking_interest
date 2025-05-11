@@ -1,4 +1,6 @@
 HELP.md
+*.mp4
+*.jar
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
