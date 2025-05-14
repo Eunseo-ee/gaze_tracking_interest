@@ -48,11 +48,28 @@
 
 <!-- 콘텐츠 영역 -->
 <div class="container mt-4">
-    <ul class="list-group list-group-flush">
-        <li class="list-group-item fs-4 border-0">1. ...</li>
-        <li class="list-group-item fs-4 border-0">2. ...</li>
-        <li class="list-group-item fs-4 border-0">3. ...</li>
-    </ul>
+    <h2 th:text="'매장 ' + ${storeCode} + '의 관심도 순위'">관심도 순위</h2>
+
+    <!-- ⚠️ 파일 없을 때 -->
+    <p th:if="${csvData == null}">
+        ⚠️ 현재 등록된 관심도 순위 CSV 파일이 없습니다.
+    </p>
+
+    <!-- ✅ 파일 있을 때: 테이블 표시 -->
+    <table th:if="${csvData != null}" border="1" cellpadding="5">
+        <thead>
+        <tr>
+            <th th:each="header : ${csvData[0]}" th:text="${header}">헤더</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${csvData}" th:if="${!#lists.isEmpty(row) and row != csvData[0]}">
+            <td th:each="cell : ${row}" th:text="${cell}">데이터</td>
+        </tr>
+        </tbody>
+    </table>
+
+
 </div>
 
 <!-- 삼선 메뉴 클릭시 나타나는 Offcanvas 메뉴 -->
