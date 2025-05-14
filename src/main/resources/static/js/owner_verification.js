@@ -4,6 +4,8 @@ function showBizVerification() {
 
 function submitPassword() {
     const password = document.getElementById("passwordInput").value;
+    const storeCode = getStoreCodeFromURL();
+
     fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -14,6 +16,7 @@ function submitPassword() {
     }).then(res => {
         if (res.ok) {
             alert("로그인 성공");
+            window.location.href = `/store/${storeCode}/owner_dashboard`;
         } else {
             alert("비밀번호가 틀렸습니다");
         }

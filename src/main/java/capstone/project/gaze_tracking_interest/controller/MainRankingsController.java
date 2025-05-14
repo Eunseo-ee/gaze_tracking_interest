@@ -22,14 +22,14 @@ public class MainRankingsController {
     @GetMapping("/store/{storeCode}/promotion")
     public String promotion(@PathVariable String storeCode, Model model) {
         model.addAttribute("activeTab", "promotion");
-        model.addAttribute("storeCode", storeCode);  // 👈 추가
+        model.addAttribute("storeCode", storeCode);  //
         return "promotion";
     }
 
     @GetMapping("/store/{storeCode}/rankings")
     public String rankings(@PathVariable String storeCode, Model model) {
         model.addAttribute("activeTab", "rankings");
-        model.addAttribute("storeCode", storeCode);  // 👈 추가
+        model.addAttribute("storeCode", storeCode);  //
         return "main_rankings";
     }
 
@@ -38,11 +38,50 @@ public class MainRankingsController {
         Store store = storeRepository.findByStoreCode(storeCode)
                 .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + storeCode));
 
+        model.addAttribute("activeTab", "owner");
         model.addAttribute("storeCode", storeCode);
         model.addAttribute("storeName", store.getStoreName());
         model.addAttribute("businessNumber", store.getBusinessNumber());
 
-        return "owner";  // 👉 templates/owner.html 렌더링됨
+        return "owner";  //
+    }
+
+    @GetMapping("/store/{storeCode}/owner_dashboard")
+    public String dashboard(@PathVariable String storeCode, Model model) {
+        Store store = storeRepository.findByStoreCode(storeCode)
+                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + storeCode));
+
+        model.addAttribute("activeTab", "owner");
+        model.addAttribute("storeCode", storeCode);
+        model.addAttribute("storeName", store.getStoreName());
+        model.addAttribute("businessNumber", store.getBusinessNumber());
+
+        return "dashboard";  //
+    }
+
+    @GetMapping("/store/{storeCode}/dashboard_video")
+    public String dashboard_video(@PathVariable String storeCode, Model model) {
+        Store store = storeRepository.findByStoreCode(storeCode)
+                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + storeCode));
+
+        model.addAttribute("activeTab", "owner");
+        model.addAttribute("storeCode", storeCode);
+        model.addAttribute("storeName", store.getStoreName());
+        model.addAttribute("businessNumber", store.getBusinessNumber());
+
+        return "dashboard_video";  //
+    }
+
+    @GetMapping("/store/{storeCode}/dashboard_comparison")
+    public String dashboard_comparison(@PathVariable String storeCode, Model model) {
+        Store store = storeRepository.findByStoreCode(storeCode)
+                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + storeCode));
+
+        model.addAttribute("storeCode", storeCode);
+        model.addAttribute("storeName", store.getStoreName());
+        model.addAttribute("businessNumber", store.getBusinessNumber());
+
+        return "dashboard_comparison";  //
     }
 }
 
