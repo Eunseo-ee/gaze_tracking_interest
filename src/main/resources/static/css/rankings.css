@@ -1,6 +1,8 @@
-body {
-    font-family: 'Roboto', sans-serif;
+* {
+    font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif !important;
+    font-weight: 500;
 }
+
 .navbar-brand {
     font-weight: bold;
     font-size: 1.6rem;

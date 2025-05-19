@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Controller
@@ -34,7 +35,7 @@ public class MainRankingsController {
         return "promotion";
     }
 
-    @GetMapping("/store/{storeCode}/rankings")
+    @GetMapping({"/store/{storeCode}/rankings", "/api/store/{storeCode}"})
     public String rankings(@PathVariable String storeCode, Model model) {
         model.addAttribute("activeTab", "rankings");
         model.addAttribute("storeCode", storeCode);
@@ -110,6 +111,20 @@ public class MainRankingsController {
         model.addAttribute("storeCode", storeCode);
         model.addAttribute("storeName", store.getStoreName());
         model.addAttribute("businessNumber", store.getBusinessNumber());
+
+        // 영상 파일 목록 가져오기
+        Path uploadPath = Paths.get("src/main/resources/static/uploads/");
+        List<String> mp4List = new ArrayList<>();
+        try (Stream<Path> paths = Files.list(uploadPath)) {
+            mp4List = paths
+                    .filter(p -> p.toString().endsWith(".mp4"))
+                    .map(p -> "/uploads/" + p.getFileName().toString())
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        model.addAttribute("mp4List", mp4List); // 뷰로 전달
 
         return "dashboard_video";  //
     }

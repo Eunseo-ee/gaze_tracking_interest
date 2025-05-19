@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Promotion</title>
   <link rel="stylesheet" th:href="@{/css/rankings.css(v=${#dates.createNow().time})}">
+  <link rel="stylesheet" th:href="@{/css/dashboard.css(v=${#dates.createNow().time})}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Bootstrap CSS -->
@@ -43,6 +44,29 @@
   </ul>
 </div>
 
+<h3>🎥</h3>
+<video id="videoPlayer" width="640" height="360" controls>
+  <source id="videoSource" src="" type="video/mp4">
+  브라우저가 video 태그를 지원하지 않습니다.
+</video>
+
+<hr>
+
+<h2 th:text="'영상 목록'">영상 목록</h2>
+
+<ul>
+  <li th:each="video : ${mp4List}">
+    <a href="#"
+       class="video-link"
+       th:text="'🎥 ' + ${#strings.substring(video, video.lastIndexOf('/') + 1, video.lastIndexOf('.'))}"
+       th:attr="data-src=${#strings.substring(video, video.lastIndexOf('/') + 1)}"
+       onclick="playVideo(this)">
+      영상 링크
+    </a>
+  </li>
+</ul>
+
+<script src="/js/dashboard_video.js"></script>
 </body>
 
 </html>
