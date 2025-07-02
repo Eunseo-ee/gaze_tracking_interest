@@ -59,18 +59,86 @@
     <table th:if="${csvData != null}" border="1" cellpadding="5">
         <thead>
         <tr>
-            <th th:each="header : ${csvData[0]}" th:text="${header}">헤더</th>
+            <th>index</th>
+            <th>상품명</th>
+            <th>
+                <button class="btn btn-link p-0" type="button" data-bs-toggle="modal" data-bs-target="#categoryFilterModal">
+                    카테고리 🔽
+                </button>
+            </th>
+            <th>
+                <button class="btn btn-link p-0" type="button" data-bs-toggle="modal" data-bs-target="#priceFilterModal">
+                    상품가격 🔽
+                </button>
+            </th>
         </tr>
         </thead>
+
         <tbody>
-        <tr th:each="row : ${csvData}" th:if="${!#lists.isEmpty(row) and row != csvData[0]}">
-            <td th:each="cell : ${row}" th:text="${cell}">데이터</td>
+        <tr th:each="row, stat : ${csvData}" th:if="${!#lists.isEmpty(row) and row != csvData[0]}">
+            <td class="index-cell" th:text="${stat.count}">1</td>
+            <td th:text="${row[0]}">상품명</td>
+            <td th:text="${row[1]}">카테고리</td>
+            <td th:text="${row[2]}">상품가격</td>
         </tr>
         </tbody>
     </table>
 
-
 </div>
+
+<!-- 카테고리 필터 모달 -->
+<div class="modal fade" id="categoryFilterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">카테고리 필터</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryFilterForm">
+                    <div class="form-check" th:each="category : ${categories}">
+                        <input class="form-check-input" type="checkbox"
+                               th:id="'cat_' + ${category}" th:value="${category}" name="categories">
+                        <label class="form-check-label" th:for="'cat_' + ${category}" th:text="${category}">카테고리</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-primary" onclick="applyCategoryFilter()">적용</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 가격 필터 모달 -->
+<div class="modal fade" id="priceFilterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">상품가격 필터</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="priceFilterForm">
+                    <div class="mb-3">
+                        <label for="minPrice" class="form-label">최소 가격</label>
+                        <input type="number" class="form-control" id="minPrice" name="minPrice">
+                    </div>
+                    <div class="mb-3">
+                        <label for="maxPrice" class="form-label">최대 가격</label>
+                        <input type="number" class="form-control" id="maxPrice" name="maxPrice">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-primary" onclick="applyPriceFilter()">적용</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- 삼선 메뉴 클릭시 나타나는 Offcanvas 메뉴 -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="menuOffcanvas">

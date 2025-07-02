@@ -52,18 +52,34 @@ public class MainRankingsController {
 
                 // CSV 파싱
                 List<List<String>> csvData = new ArrayList<>();
+                Set<String> categorySet = new TreeSet<>(); //중복 없이 정렬된 카테고리 집합
+
                 try (BufferedReader br = Files.newBufferedReader(csvPath)) {
                     String line;
+                    boolean isFirstLine = true;
+
                     while ((line = br.readLine()) != null) {
                         List<String> row = new ArrayList<>(Arrays.asList(line.split(",")));
-                        if (row.size() > 2) {
-                            row.remove(2); // ✅ 세 번째 열 삭제
-                        }
-                        csvData.add(row);
 
+                        if (!isFirstLine && row.size() > 3) {
+                            row.remove(0); // index 제거
+                            row.remove(1); // 바코드 제거 (주의: 0을 제거한 후 바코드는 index 1이 됨)
+                        }
+
+
+                        if (!isFirstLine && row.size() > 2) {
+                            String category = row.get(1).trim(); // <-- index 2 → 1로 변경
+                            if (!category.isEmpty()) {
+                                categorySet.add(category);
+                            }
+                        }
+
+                        csvData.add(row);
+                        isFirstLine = false;
                     }
                 }
                 model.addAttribute("csvData", csvData);
+                model.addAttribute("categories", categorySet);
             } else {
                 model.addAttribute("csvUrl", null);
                 model.addAttribute("csvData", null);

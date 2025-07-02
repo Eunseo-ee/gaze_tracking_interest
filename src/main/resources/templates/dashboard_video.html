@@ -44,17 +44,20 @@
   </ul>
 </div>
 
-<h3>🎥</h3>
-<video id="videoPlayer" width="640" height="360" controls>
-  <source id="videoSource" src="" type="video/mp4">
-  브라우저가 video 태그를 지원하지 않습니다.
-</video>
+<!--<h3 style="margin-left: 2%;">🎥</h3>-->
+<!-- HTML -->
+<div class="video-container">
+  <video id="videoPlayer" controls>
+    <source id="videoSource" src="" type="video/mp4">
+    브라우저가 video 태그를 지원하지 않습니다.
+  </video>
+</div>
 
 <hr>
 
-<h2 th:text="'영상 목록'">영상 목록</h2>
+<h2 th:text="'영상 목록'" style="margin-left: 2%;">영상 목록</h2>
 
-<ul>
+<ul class="video-list">
   <li th:each="video : ${mp4List}">
     <a href="#"
        class="video-link"
@@ -65,6 +68,7 @@
     </a>
   </li>
 </ul>
+
 
 <script src="/js/dashboard_video.js"></script>
 </body>
