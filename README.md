@@ -58,7 +58,7 @@
 ---
 
 ## 🏗 시스템 아키텍처
-<img src="https://github.com/user-attachments/assets/bfc43480-4249-4bf9-8c80-75b6d9c3da86.png" width="500"/>
+![Image]("https://github.comㅋ/user-attachments/assets/bfc43480-4249-4bf9-8c80-75b6d9c3da86)
 
 
 ---
@@ -66,10 +66,14 @@
 ### 스크린샷 이미지
 
 - 메인 랭킹 페이지
-  ![Image](https://github.com/user-attachments/assets/cd152fc3-1471-4b03-ab2f-a7ec52866f86)
+  
+  ![Image](https://github.com/user-attachments/assets/c0fb2d91-1fdd-4a8b-bf28-a1102c067bc1)
 - 프로모션 페이지
-  ![Image](https://github.com/user-attachments/assets/04587312-e4d5-40e2-8217-a14ed46f15d2)
+  
+  ![Image](https://github.com/user-attachments/assets/0d6f1a6f-af50-419e-aad6-e098671fc010)
 - 점주 인증 페이지
-  ![Image](https://github.com/user-attachments/assets/abcc41c2-e051-4396-984d-a5aa6e547990)
+  
+  ![Image](https://github.com/user-attachments/assets/a5143f23-0ff6-497b-9699-3478c08f71b9)
 - 점주 대시보드 페이지
-  ![Image](https://github.com/user-attachments/assets/808a3b08-ec52-4d48-9cee-631e09bdc9aa)
+  
+  ![Image](https://github.com/user-attachments/assets/4fa1b392-7e34-4385-ab3d-e12c88ce47f0)
