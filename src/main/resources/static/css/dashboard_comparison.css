@@ -1,0 +1,58 @@
+* {
+    font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif !important;
+    font-weight: 500;
+}
+
+body {
+    padding: 20px;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.buttons {
+    margin-bottom: 20px;
+}
+
+.buttons button {
+    padding: 8px 16px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.compare-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.table-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px; /* 글자 작게 */
+}
+
+th, td {
+    padding: 6px 8px; /* 간격 줄임 */
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+
+.hidden {
+    display: none;
+}
