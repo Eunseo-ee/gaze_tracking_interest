@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Promotion</title>
   <link rel="stylesheet" th:href="@{/css/rankings.css(v=${#dates.createNow().time})}">
+  <link rel="stylesheet" th:href="@{/css/dashboard_comparison.css(v=${#dates.createNow().time})}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Bootstrap CSS -->
@@ -43,6 +44,90 @@
   </ul>
 </div>
 
+<div class="filters">
+  <label>날짜:
+    <input type="date" id="dateInput">
+  </label>
+  <label>시간:
+    <select id="timeInput">
+      <option value="">선택</option>
+      <option>18:00~19:00</option>
+      <option>19:00~20:00</option>
+    </select>
+  </label>
+  <label>카테고리:
+    <select id="categoryInput">
+      <option value="">선택</option>
+      <option>과자</option>
+      <option>음료</option>
+      <option>기타</option>
+    </select>
+  </label>
+</div>
+
+<div class="buttons">
+  <button onclick="showSection('compare')">순위비교</button>
+  <button onclick="showSection('conversion')">구매전환율</button>
+</div>
+
+<!-- 순위 비교 테이블 -->
+<div id="compareSection" class="compare-container">
+  <div class="table-wrapper">
+    <h2>&lt;시선추적&gt;</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>순위</th>
+        <th>상품명</th>
+        <th>카테고리</th>
+        <th>상품 가격</th>
+      </tr>
+      </thead>
+      <tbody id="gazeTableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="table-wrapper">
+    <h2>&lt;실판매&gt;</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>순위</th>
+        <th>상품명</th>
+        <th>카테고리</th>
+        <th>상품 가격</th>
+      </tr>
+      </thead>
+      <tbody id="salesTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 구매전환율 테이블 -->
+<div id="conversionSection" class="hidden">
+  <h2>&lt;구매전환율&gt;</h2>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+      <tr>
+        <th>시선추적 순위</th>
+        <th>제품명</th>
+        <th>카테고리</th>
+        <th>상품 가격</th>
+        <th>시선추적수</th>
+        <th>실판매수량</th>
+        <th>구매전환율</th>
+        <th>실판매순위</th>
+      </tr>
+      </thead>
+      <tbody id="conversionTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+
+<script src="/js/dashboard_comparison.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </body>
 
 </html>
