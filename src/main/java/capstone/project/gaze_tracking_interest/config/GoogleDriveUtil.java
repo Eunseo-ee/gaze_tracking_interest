@@ -45,8 +45,14 @@ public class GoogleDriveUtil {
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
         // 📁 사용자 홈 디렉토리에 토큰 저장
-        String userHome = System.getProperty("user.home");
-        java.io.File tokenDir = new java.io.File(userHome, ".gdrive_tokens");
+        java.io.File tokenDir;
+        if (isRender) {
+            tokenDir = new java.io.File("/etc/secrets/tokens"); // Render에 마운트한 토큰 경로
+        } else {
+            String userHome = System.getProperty("user.home");
+            tokenDir = new java.io.File(userHome, ".gdrive_tokens");
+        }
+
         if (!tokenDir.exists()) tokenDir.mkdirs();
 
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
