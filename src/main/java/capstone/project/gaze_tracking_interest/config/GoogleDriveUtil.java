@@ -28,10 +28,10 @@ public class GoogleDriveUtil {
 
     public static Drive getDriveService() throws IOException, GeneralSecurityException {
         InputStream in;
-        java.io.File secretsFile = new java.io.File(SECRET_PATH);
+        boolean isRender = new java.io.File(SECRET_PATH).exists();
 
-        if (secretsFile.exists()) {
-            in = new FileInputStream(secretsFile);
+        if (isRender) {
+            in = new FileInputStream(SECRET_PATH);
             System.out.println("🔐 Render 환경에서 credentials.json 사용");
         } else {
             in = GoogleDriveUtil.class.getResourceAsStream("/credentials.json");
@@ -58,8 +58,16 @@ public class GoogleDriveUtil {
                 .setAccessType("offline")
                 .build();
 
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-        Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+        Credential credential;
+
+        if (isRender) {
+            // Render에서는 사용자 인증 창이 없기 때문에 예외 처리 또는 대체 인증 방식 필요
+            throw new IllegalStateException("Render 환경에서는 브라우저 인증이 불가능합니다. Service Account 방식 사용 필요.");
+        } else {
+            // 로컬: 브라우저 인증
+            LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+            credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+        }
 
         return new Drive.Builder(
                 GoogleNetHttpTransport.newTrustedTransport(),
@@ -86,7 +94,7 @@ public class GoogleDriveUtil {
     public static String downloadFileContent(String fileId) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
-            com.google.api.services.drive.Drive driveService = getDriveService(); // ✅ 여기!
+            com.google.api.services.drive.Drive driveService = getDriveService();
             driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream);
         } catch (Exception e) {
             throw new IOException("Failed to download file from Google Drive", e);
