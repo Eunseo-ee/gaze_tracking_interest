@@ -15,7 +15,8 @@ async function fetchCsvFilenames() {
 }
 
 function findFilenameByCondition(files, prefix, date, time) {
-    const target = `${prefix}_${date}_${time}.csv`;
+    const normalizedTime = time.replace(/:/g, '');  // ← 콜론(:) 제거
+    const target = `${prefix}_${date}_${normalizedTime}.csv`;
     return files.find(name => name === target);
 }
 
@@ -52,11 +53,11 @@ async function loadConversionTable() {
             순위: gaze['index'],
             제품명: gaze['상품명'],
             카테고리: gaze['카테고리'],
-            상품가격: gaze['상품가격'],
-            시선추적수: gazeCount,
-            실판매수량: saleCount,
+            가격: gaze['상품가격'],
+            관심수: gazeCount,
+            판매수: saleCount,
             구매전환율: rate,
-            실판매순위: saleRank
+            판매순위: saleRank
         };
     });
 
@@ -83,11 +84,11 @@ function renderConversionTable(data) {
                 <td>${row.순위}</td>
                 <td>${row.제품명}</td>
                 <td>${row.카테고리}</td>
-                <td>${row.상품가격}</td>
-                <td>${row.시선추적수}</td>
-                <td>${row.실판매수량}</td>
+                <td>${row.가격}</td>
+                <td>${row.관심수}</td>
+                <td>${row.판매수}</td>
                 <td>${row.구매전환율}</td>
-                <td>${row.실판매순위}</td>
+                <td>${row.판매순위}</td>
             </tr>
         `;
     });
@@ -159,10 +160,10 @@ function renderCompareTable(gazeRows, salesRows) {
     salesTbody.innerHTML = '';
 
     gazeRows.forEach(row => {
-        gazeTbody.innerHTML += `<tr><td>${row['index']}</td><td>${row['상품명']}</td><td>${row['카테고리']}</td><td>${row['상품가격']}</td></tr>`;
+        gazeTbody.innerHTML += `<tr><td>${row['상품명']}</td><td>${row['카테고리']}</td><td>${row['상품가격']}</td></tr>`;
     });
 
     salesRows.forEach(row => {
-        salesTbody.innerHTML += `<tr><td>${row['index']}</td><td>${row['상품명']}</td><td>${row['카테고리']}</td><td>${row['상품가격']}</td></tr>`;
+        salesTbody.innerHTML += `<tr><td>${row['상품명']}</td><td>${row['카테고리']}</td><td>${row['상품가격']}</td></tr>`;
     });
 }

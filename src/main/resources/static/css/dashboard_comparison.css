@@ -3,11 +3,8 @@
     font-weight: 500;
 }
 
-body {
-    padding: 20px;
-}
-
 .filters {
+    margin-top: 10px;
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
@@ -15,6 +12,7 @@ body {
 
 .buttons {
     margin-bottom: 20px;
+    margin-left: 10px;
 }
 
 .buttons button {
@@ -26,7 +24,7 @@ body {
 .compare-container {
     display: flex;
     justify-content: space-between;
-    gap: 20px;
+    gap: 16px;
     margin-top: 20px;
 }
 
@@ -36,15 +34,21 @@ body {
 }
 
 table {
-    border-collapse: collapse;
+    table-layout: auto;
     width: 100%;
-    font-size: 14px; /* 글자 작게 */
+    word-break: keep-all;
+    white-space: nowrap;
+    font-size: 12px; /* 글씨 줄이기 */
+    border-collapse: collapse;
 }
 
 th, td {
-    padding: 6px 8px; /* 간격 줄임 */
-    text-align: center;
-    border-bottom: 1px solid #ddd;
+    padding: 2px 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    min-width: 0; /* ❗기본값 제거 */
 }
 
 th {
@@ -55,4 +59,20 @@ th {
 
 .hidden {
     display: none;
+}
+
+@media (max-width: 480px) {
+    table {
+        font-size: 10px;
+    }
+
+    th, td {
+        padding: 1px 2px; /* 모바일에서는 더 타이트하게 */
+        font-size: 10px;
+    }
+
+    .filters label,
+    .buttons button {
+        font-size: 12px;
+    }
 }
