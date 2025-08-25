@@ -57,6 +57,12 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.google.auth</groupId>
+			<artifactId>google-auth-library-oauth2-http</artifactId>
+			<version>1.19.0</version>
+		</dependency>
+
 		<!-- Google API Client (Jackson 포함) -->
 		<dependency>
 			<groupId>com.google.api-client</groupId>
@@ -111,7 +117,7 @@
 
 		<repository>
 			<id>central</id>
-			<url>https://repo.maven.apache.org/maven2</url>
+			<url>https://repo1.maven.org/maven2/</url>
 		</repository>
 	</repositories>
 
