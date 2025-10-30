@@ -81,9 +81,9 @@ public class GoogleDriveController {
 
             // ✅ .csv 확장자로 필터링
             List<String> fileNames = files.stream()
-                    .filter(f -> f.getName().toLowerCase().endsWith(".csv"))
-                    .map(File::getName)
-                    .collect(Collectors.toList());
+                .map(File::getName)
+                .filter(name -> name.toLowerCase().endsWith(".csv"))
+                .collect(Collectors.toList());
 
             return ResponseEntity.ok(fileNames);
         } catch (Exception e) {
@@ -101,7 +101,9 @@ public class GoogleDriveController {
     public ResponseEntity<?> getCsvContent(@RequestParam String name) {
         try {
             String decodedName = java.net.URLDecoder.decode(name, java.nio.charset.StandardCharsets.UTF_8);
-            List<File> files = GoogleDriveUtil.listFilesInFolder(CAPSTONE_FOLDER_ID, "text/csv");
+
+            // ✅ MIME 필터 제거 → 모든 파일 불러오기
+            List<File> files = GoogleDriveUtil.listFilesInFolder(CAPSTONE_FOLDER_ID, null);
 
             File target = files.stream()
                     .filter(f -> f.getName().equals(decodedName))
@@ -114,9 +116,11 @@ public class GoogleDriveController {
 
             String content = GoogleDriveUtil.downloadFileContent(target.getId());
             return ResponseEntity.ok(content);
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
+
 }
