@@ -6,16 +6,16 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
-import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.api.client.http.HttpRequestInitializer;
+
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -25,6 +25,8 @@ import java.util.List;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+
 
 public class GoogleDriveUtil {
 
@@ -60,13 +62,33 @@ public class GoogleDriveUtil {
     }
 
     /** ✅ Render + 로컬 통합 인증 */
+
     private static Drive buildDriveOnce() throws IOException, GeneralSecurityException {
 
-        // ✅ Render secrets 경로
+        // ✅ 1. Render secrets 경로 (credentials.json 우선)
+        File credentialsPath = new File("/etc/secrets/credentials.json");
+        if (!credentialsPath.exists()) {
+            // 로컬 개발 환경에서 대체 경로 사용
+            credentialsPath = new File("src/main/resources/credentials.json");
+        }
+
+        // ✅ credentials.json 존재 시 바로 사용
+        if (credentialsPath.exists()) {
+            System.out.println("✅ Using credentials.json at " + credentialsPath.getAbsolutePath());
+            try (InputStream in = new FileInputStream(credentialsPath)) {
+                GoogleCredentials credentials = GoogleCredentials.fromStream(in)
+                        .createScoped(SCOPES);
+                HttpRequestInitializer rqInit = new HttpCredentialsAdapter(credentials);
+                return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, rqInit)
+                        .setApplicationName(APPLICATION_NAME)
+                        .build();
+            }
+        }
+
+        // ✅ 2. Render secrets 경로 (추가 옵션)
         Path tokenPath = Paths.get("/etc/secrets/drive_token.json");
         Path serviceAccountPath = Paths.get("/etc/secrets/service-account.json");
 
-        // ✅ Render 배포 환경이면 (drive_token.json 우선)
         if (Files.exists(tokenPath)) {
             System.out.println("🔐 Using pre-issued drive_token.json from Render");
             try (InputStream in = Files.newInputStream(tokenPath)) {
@@ -79,7 +101,6 @@ public class GoogleDriveUtil {
             }
         }
 
-        // ✅ 서비스 계정이 있으면 그걸로 인증
         if (Files.exists(serviceAccountPath)) {
             System.out.println("🧾 Using Service Account JSON");
             try (InputStream in = Files.newInputStream(serviceAccountPath)) {
@@ -92,39 +113,43 @@ public class GoogleDriveUtil {
             }
         }
 
-        // ✅ 로컬 OAuth (credentials.json + .gdrive_tokens)
+        // ✅ 3. 로컬 OAuth (fallback)
         System.out.println("💻 Using local OAuth flow");
-        InputStream in = new FileInputStream(LOCAL_CREDENTIALS_PATH);
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+        try (InputStream in = new FileInputStream(LOCAL_CREDENTIALS_PATH)) {
+            GoogleClientSecrets clientSecrets =
+                    GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
-        java.io.File tokenDir = new java.io.File(LOCAL_TOKEN_DIR);
-        if (!tokenDir.exists()) tokenDir.mkdirs();
+            java.io.File tokenDir = new java.io.File(LOCAL_TOKEN_DIR);
+            if (!tokenDir.exists()) tokenDir.mkdirs();
 
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(new FileDataStoreFactory(tokenDir))
-                .setAccessType("offline")
-                .build();
+            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                    HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
+                    .setDataStoreFactory(new FileDataStoreFactory(tokenDir))
+                    .setAccessType("offline")
+                    .build();
 
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-                .setHost("localhost")
-                .setPort(0)
-                .build();
+            LocalServerReceiver receiver = new LocalServerReceiver.Builder()
+                    .setHost("localhost")
+                    .setPort(0)
+                    .build();
 
-        Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+            Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 
-        return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-                .setApplicationName(APPLICATION_NAME)
-                .build();
+            return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                    .setApplicationName(APPLICATION_NAME)
+                    .build();
+        }
     }
+
+
 
     // ✅ 여기부터 아래 두 메서드 추가 (Controller에서 호출되는 부분)
 
     /**
      * 📂 특정 폴더의 파일 목록 조회
      */
-    public static List<File> listFilesInFolder(String folderId, String mimeTypeFilter)
-            throws IOException, GeneralSecurityException {
+    public static List<com.google.api.services.drive.model.File> listFilesInFolder(String folderId, String mimeTypeFilter)
+        throws IOException, GeneralSecurityException {
 
         Drive service = getDriveService();
 
