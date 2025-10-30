@@ -32,7 +32,7 @@ public class GoogleDriveUtil {
 
     private static final String APPLICATION_NAME = "GazeTrackingInterest";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-    private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE_FILE);
+    private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
 
     private static final com.google.api.client.http.HttpTransport HTTP_TRANSPORT = initHttpTransport();
 
