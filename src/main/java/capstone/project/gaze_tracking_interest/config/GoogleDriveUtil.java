@@ -23,14 +23,19 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Drive 클라이언트 생성 유틸
+ * - 서버(Render 등): 서비스 계정 JSON이 있으면 서비스 계정 사용
+ * - 로컬: 환경변수 CLIENT_ID / CLIENT_SECRET 있으면 그걸로 Installed App OAuth
+ * - 그 외: /etc/secrets/credentials.json 또는 classpath:/credentials.json
+ * 공통: LocalServerReceiver 포트 0 사용(가용 포트 자동 할당) + Drive 싱글톤 재사용
+ */
 public class GoogleDriveUtil {
 
     private static final String APPLICATION_NAME = "MySpringDriveApp";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
-    // 공통 HTTP_TRANSPORT는 1회 생성
     private static final com.google.api.client.http.HttpTransport HTTP_TRANSPORT = initHttpTransport();
-
     private static com.google.api.client.http.HttpTransport initHttpTransport() {
         try {
             return GoogleNetHttpTransport.newTrustedTransport();
@@ -39,13 +44,13 @@ public class GoogleDriveUtil {
         }
     }
 
-    private static final List<String> SCOPES =
-            Collections.singletonList(DriveScopes.DRIVE);
+    private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
 
-    private static final String USER_SECRET_PATH = "/etc/secrets/credentials.json";       // OAuth(Client ID)
+    // 경로 정책
+    private static final String USER_SECRET_PATH = "/etc/secrets/credentials.json";        // OAuth(Client ID)
     private static final String SERVICE_ACCOUNT_PATH = "/etc/secrets/service-account.json"; // Service Account
 
-    // ✅ 싱글톤 캐시 (동시성 안전)
+    // 싱글톤 캐시
     private static volatile Drive DRIVE;
 
     public static Drive getDriveService() throws IOException, GeneralSecurityException {
@@ -60,12 +65,10 @@ public class GoogleDriveUtil {
     /** 실제 Drive 인스턴스는 여기서 한 번만 생성 */
     private static Drive buildDriveOnce() throws IOException, GeneralSecurityException {
         boolean hasServiceAccount = new java.io.File(SERVICE_ACCOUNT_PATH).exists();
-        boolean hasUserSecret = new java.io.File(USER_SECRET_PATH).exists() ||
-                GoogleDriveUtil.class.getResourceAsStream("/credentials.json") != null;
 
-        if (isRenderEnv() && hasServiceAccount) {
-            // ✅ Render(서버) 환경: 서비스 계정 사용 (브라우저 불필요)
-            System.out.println("🔐 Using Service Account on server");
+        // 1) 서버(파일 존재)면 서비스 계정 우선
+        if (hasServiceAccount) {
+            System.out.println("🔐 Using Service Account");
             GoogleCredentials credentials;
             try (InputStream in = new FileInputStream(SERVICE_ACCOUNT_PATH)) {
                 credentials = GoogleCredentials.fromStream(in).createScoped(SCOPES);
@@ -75,78 +78,98 @@ public class GoogleDriveUtil {
             return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, rqInit)
                     .setApplicationName(APPLICATION_NAME)
                     .build();
-
-        } else if (hasUserSecret) {
-            // ✅ 로컬: 사용자 OAuth (최초 1회 브라우저 인증)
-            System.out.println("💻 Using Installed App OAuth locally");
-            GoogleClientSecrets clientSecrets = loadClientSecrets();
-
-            java.io.File tokenDir = resolveTokenDir();
-            if (!tokenDir.exists()) tokenDir.mkdirs();
-
-            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                    HTTP_TRANSPORT,
-                    JSON_FACTORY,
-                    clientSecrets,
-                    SCOPES
-            ).setDataStoreFactory(new FileDataStoreFactory(tokenDir))
-                    .setAccessType("offline")
-                    .build();
-
-            // ★ 포트 0으로 설정 → OS가 가용 포트 임의 할당
-            LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-                    .setHost("localhost")
-                    .setPort(0)
-                    .build();
-
-            Credential credential;
-            try {
-                credential = new AuthorizationCodeInstalledApp(flow, receiver)
-                        .authorize("user");
-            } finally {
-                try { receiver.stop(); } catch (IOException ignore) {}
-            }
-
-            return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-                    .setApplicationName(APPLICATION_NAME)
-                    .build();
         }
 
-        throw new IllegalStateException("No valid credentials found. "
-                + "Provide Service Account at " + SERVICE_ACCOUNT_PATH
-                + " for server, or user OAuth credentials.json in /etc/secrets or classpath for local.");
+        // 2) 로컬/개발: 환경변수 CLIENT_ID / CLIENT_SECRET 우선
+        GoogleClientSecrets clientSecrets = tryLoadClientSecretsFromEnv();
+        if (clientSecrets == null) {
+            // 3) 마지막으로 파일/클래스패스의 credentials.json 시도
+            clientSecrets = tryLoadClientSecretsFromFileOrClasspath();
+        }
+        if (clientSecrets == null) {
+            throw new IllegalStateException(
+                    "No OAuth client secrets. Set ENV CLIENT_ID/CLIENT_SECRET or provide credentials.json."
+            );
+        }
+
+        System.out.println("💻 Using Installed App OAuth (user consent)");
+
+        java.io.File tokenDir = resolveTokenDir();
+        if (!tokenDir.exists()) tokenDir.mkdirs();
+
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                HTTP_TRANSPORT,
+                JSON_FACTORY,
+                clientSecrets,
+                SCOPES
+        ).setDataStoreFactory(new FileDataStoreFactory(tokenDir))
+                .setAccessType("offline")
+                .build();
+
+        // 포트 0: OS가 빈 포트 자동 할당 → 포트 충돌 방지
+        LocalServerReceiver receiver = new LocalServerReceiver.Builder()
+                .setHost("localhost")
+                .setPort(0)
+                .build();
+
+        Credential credential;
+        try {
+            credential = new AuthorizationCodeInstalledApp(flow, receiver)
+                    .authorize("user");
+        } finally {
+            try { receiver.stop(); } catch (IOException ignore) {}
+        }
+
+        return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                .setApplicationName(APPLICATION_NAME)
+                .build();
     }
 
-    private static GoogleClientSecrets loadClientSecrets() throws IOException {
-        InputStream in;
-        java.io.File serverSecret = new java.io.File(USER_SECRET_PATH);
-        if (serverSecret.exists()) {
-            in = new FileInputStream(serverSecret);
-            System.out.println("🔐 credentials.json from /etc/secrets");
-        } else {
-            in = GoogleDriveUtil.class.getResourceAsStream("/credentials.json");
-            System.out.println("📦 credentials.json from classpath");
+    /** ENV에서 CLIENT_ID/CLIENT_SECRET 있으면 secrets 생성 */
+    private static GoogleClientSecrets tryLoadClientSecretsFromEnv() {
+        String id  = System.getenv("CLIENT_ID");
+        String sec = System.getenv("CLIENT_SECRET");
+        if (id == null || id.isBlank() || sec == null || sec.isBlank()) {
+            return null;
         }
-        if (in == null) throw new FileNotFoundException("credentials.json not found");
-        try (Reader reader = new InputStreamReader(in)) {
-            return GoogleClientSecrets.load(JSON_FACTORY, reader);
+        try {
+            return GoogleSecretsFactory.fromEnv(); // ✅ 당신이 만든 팩토리 사용
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load GoogleClientSecrets from ENV", e);
+        }
+    }
+
+    /** 파일(/etc/secrets 또는 classpath)에서 credentials.json 로드 */
+    private static GoogleClientSecrets tryLoadClientSecretsFromFileOrClasspath() {
+        try {
+            InputStream in;
+            java.io.File serverSecret = new java.io.File(USER_SECRET_PATH);
+            if (serverSecret.exists()) {
+                in = new FileInputStream(serverSecret);
+                System.out.println("🔐 credentials.json from /etc/secrets");
+            } else {
+                in = GoogleDriveUtil.class.getResourceAsStream("/credentials.json");
+                if (in != null) {
+                    System.out.println("📦 credentials.json from classpath");
+                }
+            }
+            if (in == null) return null;
+
+            try (Reader reader = new InputStreamReader(in)) {
+                return GoogleClientSecrets.load(JSON_FACTORY, reader);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load credentials.json", e);
         }
     }
 
     private static java.io.File resolveTokenDir() {
-        if (isRenderEnv()) {
-            // Render에 토큰 디렉토리를 비밀 마운트로 잡고 싶다면 이 경로 사용
+        // 서버에서도 토큰을 저장하고 싶으면 보안 경로 사용
+        if (new java.io.File("/etc/secrets").exists()) {
             return new java.io.File("/etc/secrets/tokens");
         }
         String userHome = System.getProperty("user.home");
         return new java.io.File(userHome, ".gdrive_tokens");
-    }
-
-    private static boolean isRenderEnv() {
-        // 환경 변수 등으로 구분(원하는 방식으로 바꿔도 됨)
-        // Render에서는 흔히 RENDER=true 같은 변수를 세팅하거나,
-        // 단순히 서비스 계정 파일/시크릿 존재 여부로 판단할 수도 있음.
-        return new java.io.File("/etc/secrets").exists();
     }
 
     // ===================== Public APIs =====================
@@ -155,7 +178,6 @@ public class GoogleDriveUtil {
             throws IOException, GeneralSecurityException {
         Drive service = getDriveService();
 
-        // mimeType이 정확히 정해져 있으면 equals로 쓰는 것도 고려 (예: 'text/csv')
         String query = String.format("'%s' in parents and mimeType contains '%s' and trashed = false",
                 folderId, mimeTypeFilter);
 
