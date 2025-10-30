@@ -77,9 +77,11 @@ public class GoogleDriveController {
     @GetMapping("/csv-list")
     public ResponseEntity<?> getCsvFileNames() {
         try {
-            List<File> files = GoogleDriveUtil.listFilesInFolder(CAPSTONE_FOLDER_ID, "text/csv");
+            List<File> files = GoogleDriveUtil.listFilesInFolder(CAPSTONE_FOLDER_ID, null);
 
+            // ✅ .csv 확장자로 필터링
             List<String> fileNames = files.stream()
+                    .filter(f -> f.getName().toLowerCase().endsWith(".csv"))
                     .map(File::getName)
                     .collect(Collectors.toList());
 
@@ -89,6 +91,7 @@ public class GoogleDriveController {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
+
 
     /**
      * ✅ CSV 파일의 실제 내용을 가져오기
