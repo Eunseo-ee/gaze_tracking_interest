@@ -1,5 +1,6 @@
 package capstone.project.gaze_tracking_interest.controller;
 
+import capstone.project.gaze_tracking_interest.config.GoogleDriveUtil;
 import capstone.project.gaze_tracking_interest.entity.Store;
 import capstone.project.gaze_tracking_interest.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.google.api.services.drive.model.File;
 
 @Controller
 @RequiredArgsConstructor
@@ -40,35 +42,39 @@ public class MainRankingsController {
         model.addAttribute("activeTab", "rankings");
         model.addAttribute("storeCode", storeCode);
 
-        Path uploadPath = Paths.get("src/main/resources/static/uploads/");
-        try (Stream<Path> paths = Files.list(uploadPath)) {
-            Optional<Path> latest = paths
-                    .filter(p -> p.toString().endsWith(".csv"))
-                    .max(Comparator.comparingLong(p -> p.toFile().lastModified()));
+        try {
+            // ✅ Drive 폴더 내 파일 불러오기
+            List<com.google.api.services.drive.model.File> files =
+                    GoogleDriveUtil.listFilesInFolder("1ZRAfqwSe7vnxMqN6rlu9KcJxTmMvxMBz", null);
 
-            if (latest.isPresent()) {
-                Path csvPath = latest.get();
-                model.addAttribute("csvUrl", "/uploads/" + csvPath.getFileName().toString());
+            // ✅ 최신 CSV 찾기
+            Optional<com.google.api.services.drive.model.File> latestCsv = files.stream()
+                    .filter(f -> f.getName().toLowerCase().endsWith(".csv"))
+                    .max(Comparator.comparing(f -> f.getModifiedTime().getValue()));
 
-                // CSV 파싱
+            if (latestCsv.isPresent()) {
+                com.google.api.services.drive.model.File csvFile = latestCsv.get();
+
+                model.addAttribute("csvUrl", csvFile.getWebViewLink());
+
+                // ✅ 파일 내용 다운로드
+                String csvContent = GoogleDriveUtil.downloadFileContent(csvFile.getId());
                 List<List<String>> csvData = new ArrayList<>();
-                Set<String> categorySet = new TreeSet<>(); //중복 없이 정렬된 카테고리 집합
+                Set<String> categorySet = new TreeSet<>();
 
-                try (BufferedReader br = Files.newBufferedReader(csvPath)) {
-                    String line;
+                try (Scanner scanner = new Scanner(csvContent)) {
                     boolean isFirstLine = true;
-
-                    while ((line = br.readLine()) != null) {
+                    while (scanner.hasNextLine()) {
+                        String line = scanner.nextLine();
                         List<String> row = new ArrayList<>(Arrays.asList(line.split(",")));
 
                         if (!isFirstLine && row.size() > 3) {
                             row.remove(0); // index 제거
-                            row.remove(1); // 바코드 제거 (주의: 0을 제거한 후 바코드는 index 1이 됨)
+                            row.remove(1); // 바코드 제거
                         }
 
-
                         if (!isFirstLine && row.size() > 2) {
-                            String category = row.get(1).trim(); // <-- index 2 → 1로 변경
+                            String category = row.get(1).trim();
                             if (!category.isEmpty()) {
                                 categorySet.add(category);
                             }
@@ -78,19 +84,24 @@ public class MainRankingsController {
                         isFirstLine = false;
                     }
                 }
+
                 model.addAttribute("csvData", csvData);
                 model.addAttribute("categories", categorySet);
             } else {
                 model.addAttribute("csvUrl", null);
                 model.addAttribute("csvData", null);
             }
-        } catch (IOException e) {
+
+        } catch (Exception e) {
+            e.printStackTrace();
             model.addAttribute("csvUrl", null);
             model.addAttribute("csvData", null);
         }
 
         return "main_rankings";
     }
+
+
 
     @GetMapping("/store/{storeCode}/owner")
     public String owner(@PathVariable String storeCode, Model model) {

@@ -54,22 +54,29 @@ public class GoogleDriveController {
     @GetMapping("/mp4-list")
     public ResponseEntity<?> getMp4Files() {
         try {
-            List<File> files = GoogleDriveUtil.listFilesInFolder(CAPSTONE_FOLDER_ID, "video/mp4");
+            // ✅ MIME 필터 제거하고 전체 가져오기
+            List<File> files = GoogleDriveUtil.listFilesInFolder(CAPSTONE_FOLDER_ID, null);
 
-            List<Map<String, String>> videoList = files.stream().map(file -> {
-                Map<String, String> map = new HashMap<>();
-                map.put("name", file.getName());
-                map.put("url", file.getWebContentLink());  // 다운로드 링크
-                map.put("webViewLink", file.getWebViewLink());  // 미리보기 링크
-                return map;
-            }).collect(Collectors.toList());
+            // ✅ 확장자로 필터링 (확실함)
+            List<Map<String, String>> videoList = files.stream()
+                    .filter(file -> file.getName().toLowerCase().endsWith(".mp4"))
+                    .map(file -> {
+                        Map<String, String> map = new HashMap<>();
+                        map.put("name", file.getName());
+                        map.put("url", file.getWebContentLink());      // 다운로드 링크
+                        map.put("webViewLink", file.getWebViewLink()); // 미리보기 링크
+                        return map;
+                    })
+                    .collect(Collectors.toList());
 
             return ResponseEntity.ok(videoList);
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
+
 
     /**
      * ✅ Google Drive 폴더 내 CSV 파일 이름만 조회
