@@ -155,10 +155,13 @@ public class GoogleDriveUtil {
 
         // ✅ MIME 필터 없이 모든 파일 가져오기
         String query = String.format("'%s' in parents and trashed = false", folderId);
+        if (mimeTypeFilter != null && !mimeTypeFilter.isBlank()) {
+        query += String.format(" and mimeType = '%s'", mimeTypeFilter); 
+        }
 
         FileList result = service.files().list()
                 .setQ(query)
-                .setFields("files(id, name, mimeType, webViewLink, webContentLink)")
+                .setFields("files(id, name, mimeType, webViewLink, webContentLink, modifiedTime)")
                 .execute();
 
         // ✅ 후처리: Controller에서 .csv, .mp4 등 걸러서 사용

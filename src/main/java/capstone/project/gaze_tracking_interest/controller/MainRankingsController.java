@@ -43,64 +43,78 @@ public class MainRankingsController {
         model.addAttribute("storeCode", storeCode);
 
         try {
-            // ✅ Drive 폴더 내 파일 불러오기
+            // ✅ Drive 폴더 내 전체 파일 가져오기
             List<com.google.api.services.drive.model.File> files =
                     GoogleDriveUtil.listFilesInFolder("1ZRAfqwSe7vnxMqN6rlu9KcJxTmMvxMBz", null);
 
-            // ✅ 최신 CSV 찾기
-            Optional<com.google.api.services.drive.model.File> latestCsv = files.stream()
+            System.out.println("📂 [Drive 파일 목록]");
+            for (var f : files) {
+                System.out.println(" - " + f.getName() + " (" + f.getMimeType() + ")");
+            }
+
+            // ✅ CSV 파일만 필터링
+            List<com.google.api.services.drive.model.File> csvFiles = files.stream()
                     .filter(f -> f.getName().toLowerCase().endsWith(".csv"))
-                    .max(Comparator.comparing(f -> f.getModifiedTime().getValue()));
+                    .toList();
 
-            if (latestCsv.isPresent()) {
-                com.google.api.services.drive.model.File csvFile = latestCsv.get();
-
-                model.addAttribute("csvUrl", csvFile.getWebViewLink());
-
-                // ✅ 파일 내용 다운로드
-                String csvContent = GoogleDriveUtil.downloadFileContent(csvFile.getId());
-                List<List<String>> csvData = new ArrayList<>();
-                Set<String> categorySet = new TreeSet<>();
-
-                try (Scanner scanner = new Scanner(csvContent)) {
-                    boolean isFirstLine = true;
-                    while (scanner.hasNextLine()) {
-                        String line = scanner.nextLine();
-                        List<String> row = new ArrayList<>(Arrays.asList(line.split(",")));
-
-                        if (!isFirstLine && row.size() > 3) {
-                            row.remove(0); // index 제거
-                            row.remove(1); // 바코드 제거
-                        }
-
-                        if (!isFirstLine && row.size() > 2) {
-                            String category = row.get(1).trim();
-                            if (!category.isEmpty()) {
-                                categorySet.add(category);
-                            }
-                        }
-
-                        csvData.add(row);
-                        isFirstLine = false;
-                    }
-                }
-
-                model.addAttribute("csvData", csvData);
-                model.addAttribute("categories", categorySet);
-            } else {
+            if (csvFiles.isEmpty()) {
+                System.out.println("⚠️ CSV 파일이 없습니다.");
                 model.addAttribute("csvUrl", null);
                 model.addAttribute("csvData", null);
+                model.addAttribute("categories", null);
+                return "main_rankings";
             }
+
+            // ✅ 최신 CSV 파일 선택
+            com.google.api.services.drive.model.File csvFile = csvFiles.stream()
+                    .max(Comparator.comparing(f -> f.getModifiedTime().getValue()))
+                    .get();
+
+            System.out.println("✅ 최신 CSV 파일: " + csvFile.getName());
+
+            model.addAttribute("csvUrl", csvFile.getWebViewLink());
+
+            // ✅ Drive에서 CSV 파일 내용 다운로드
+            String csvContent = GoogleDriveUtil.downloadFileContent(csvFile.getId());
+            List<List<String>> csvData = new ArrayList<>();
+            Set<String> categorySet = new TreeSet<>();
+
+            try (Scanner scanner = new Scanner(csvContent)) {
+                boolean isFirstLine = true;
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine();
+                    List<String> row = new ArrayList<>(Arrays.asList(line.split(",")));
+
+                    if (!isFirstLine && row.size() > 3) {
+                        row.remove(0); // index 제거
+                        row.remove(1); // 바코드 제거
+                    }
+
+                    if (!isFirstLine && row.size() > 2) {
+                        String category = row.get(1).trim();
+                        if (!category.isEmpty()) {
+                            categorySet.add(category);
+                        }
+                    }
+
+                    csvData.add(row);
+                    isFirstLine = false;
+                }
+            }
+
+            // ✅ model에 데이터 전달
+            model.addAttribute("csvData", csvData);
+            model.addAttribute("categories", categorySet);
 
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("csvUrl", null);
             model.addAttribute("csvData", null);
+            model.addAttribute("categories", null);
         }
 
         return "main_rankings";
     }
-
 
 
     @GetMapping("/store/{storeCode}/owner")

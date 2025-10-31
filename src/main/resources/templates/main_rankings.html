@@ -51,40 +51,31 @@
     <h2 th:text="'매장 ' + ${storeCode} + '의 관심도 순위'">관심도 순위</h2>
 
     <!-- ⚠️ 파일 없을 때 -->
-    <p th:if="${csvData == null}">
+    <p th:if="${#lists.isEmpty(csvData)}">
         ⚠️ 현재 등록된 관심도 순위 CSV 파일이 없습니다.
     </p>
 
     <!-- ✅ 파일 있을 때: 테이블 표시 -->
-    <table th:if="${csvData != null}" border="1" cellpadding="5">
+    <table th:if="${!#lists.isEmpty(csvData)}" border="1" cellpadding="5">
         <thead>
         <tr>
-            <th>index</th>
+            <th>순위</th>
             <th>상품명</th>
-            <th>
-                <button class="btn btn-link p-0" type="button" data-bs-toggle="modal" data-bs-target="#categoryFilterModal">
-                    카테고리 🔽
-                </button>
-            </th>
-            <th>
-                <button class="btn btn-link p-0" type="button" data-bs-toggle="modal" data-bs-target="#priceFilterModal">
-                    상품가격 🔽
-                </button>
-            </th>
+            <th>카테고리</th>
+            <th>상품가격</th>
         </tr>
         </thead>
-
         <tbody>
-        <tr th:each="row, stat : ${csvData}" th:if="${!#lists.isEmpty(row) and row != csvData[0]}">
-            <td class="index-cell" th:text="${stat.count}">1</td>
-            <td th:text="${row[0]}">상품명</td>
-            <td th:text="${row[1]}">카테고리</td>
-            <td th:text="${row[2]}">상품가격</td>
+        <tr th:each="row, stat : ${csvData}" th:if="${stat.index > 0}">
+            <td th:text="${stat.index}"></td>
+            <td th:text="${row[0]}"></td>
+            <td th:text="${row[1]}"></td>
+            <td th:text="${row[2]}"></td>
         </tr>
         </tbody>
     </table>
-
 </div>
+
 
 <!-- 카테고리 필터 모달 -->
 <div class="modal fade" id="categoryFilterModal" tabindex="-1">

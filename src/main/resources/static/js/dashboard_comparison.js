@@ -56,6 +56,7 @@ function buildTimeKeys(time) {
         `${sH}~${eH}`,         // "18~19"
         `${sH}-${eH}`,         // "18-19"
         `${sH}_${eH}`,         // "18_19" (혹시 모를 포맷)
+        `${sHHmm}~${eHHmm}`,
     ];
 }
 
