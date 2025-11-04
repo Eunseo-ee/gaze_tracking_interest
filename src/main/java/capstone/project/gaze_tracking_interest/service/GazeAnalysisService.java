@@ -12,7 +12,7 @@ import java.util.Map;
 public class GazeAnalysisService {
 
     // 🔹 로컬 FastAPI 주소 (Render에 올리면 아래 url 수정)
-    private final WebClient webClient = WebClient.create("http://localhost:8000");
+    private final WebClient webClient = WebClient.create("https://fastapi-gaze.onrender.com");
 
     public Map<String, Object> analyze(String driveLink) {
         return webClient.post()

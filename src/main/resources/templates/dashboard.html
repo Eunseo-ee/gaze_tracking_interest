@@ -46,6 +46,7 @@
 
 <!-- 버튼 영역 전체를 가운데 정렬하는 컨테이너 -->
 <div class="button-container">
+    <a th:href="@{'/store/' + ${storeCode} + '/dashboard_upload'}" class="dashboard-button">Video Upload</a>
     <a th:href="@{'/store/' + ${storeCode} + '/dashboard_video'}" class="dashboard-button">Video</a>
     <a th:href="@{'/store/' + ${storeCode} + '/dashboard_comparison'}" class="dashboard-button">Rankings Comparison</a>
 </div>

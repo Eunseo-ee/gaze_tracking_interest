@@ -182,5 +182,19 @@ public class MainRankingsController {
 
         return "dashboard_comparison";  //
     }
+
+    @GetMapping("/store/{storeCode}/dashboard_upload")
+public String dashboard_upload(@PathVariable String storeCode, Model model) {
+    Store store = storeRepository.findByStoreCode(storeCode)
+            .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + storeCode));
+
+    model.addAttribute("activeTab", "owner");
+    model.addAttribute("storeCode", storeCode);
+    model.addAttribute("storeName", store.getStoreName());
+    model.addAttribute("businessNumber", store.getBusinessNumber());
+
+    return "dashboard_upload";  // ✅ templates/dashboard_upload.html 로 연결
+}
+
 }
 
