@@ -18,8 +18,13 @@ public class GazeController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> analyze(@RequestParam String driveLink) {
-        Map<String, Object> result = gazeService.analyze(driveLink);
+    public ResponseEntity<Map<String, Object>> analyze(
+            @RequestParam String driveLink,
+            @RequestParam String date,     // yyyy-MM-dd
+            @RequestParam String start,    // HH:mm
+            @RequestParam String end       // HH:mm
+    ) {
+        Map<String, Object> result = gazeService.analyze(driveLink, date, start, end);
         return ResponseEntity.ok(result);
     }
 }

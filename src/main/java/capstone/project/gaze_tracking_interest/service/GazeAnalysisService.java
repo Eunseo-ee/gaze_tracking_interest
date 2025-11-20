@@ -12,13 +12,17 @@ import java.util.Map;
 public class GazeAnalysisService {
 
     // 🔹 로컬 FastAPI 주소 (Render에 올리면 아래 url 수정)
-    private final WebClient webClient = WebClient.create("https://unsiccative-jada-unsoundable.ngrok-free.dev");
+    private final WebClient webClient = WebClient.create("http://localhost:8000");
 
-    public Map<String, Object> analyze(String driveLink) {
+    public Map<String, Object> analyze(String driveLink, String date, String start, String end) {
+
         return webClient.post()
                 .uri("/process")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData("driveLink", driveLink))
+                .body(BodyInserters.fromFormData("driveLink", driveLink)
+                        .with("date", date)
+                        .with("start", start)
+                        .with("end", end))
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .block();
