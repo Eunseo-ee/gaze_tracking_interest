@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,9 +54,13 @@ public class MainRankingsController {
             }
 
             // ✅ CSV 파일만 필터링
-            List<com.google.api.services.drive.model.File> csvFiles = files.stream()
-                    .filter(f -> f.getName().toLowerCase().endsWith(".csv"))
-                    .toList();
+            List<File> csvFiles = files.stream()
+                .filter(f -> {
+                    String name = f.getName().toLowerCase();
+                    return name.startsWith("gaze-tracking") && name.endsWith(".csv");
+                })
+                .toList();
+
 
             if (csvFiles.isEmpty()) {
                 System.out.println("⚠️ CSV 파일이 없습니다.");
@@ -80,17 +85,42 @@ public class MainRankingsController {
             Set<String> categorySet = new TreeSet<>();
 
             try (Scanner scanner = new Scanner(csvContent)) {
-                boolean isFirstLine = true;
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    List<String> row = new ArrayList<>(Arrays.asList(line.split(",")));
 
-                    if (!isFirstLine && row.size() > 3) {
-                        row.remove(0); // index 제거
-                        row.remove(1); // 바코드 제거
+                boolean isFirstLine = true;
+
+                while (scanner.hasNextLine()) {
+
+                    String line = scanner.nextLine();
+
+                    // 1) 공백 제거(split + trim)
+                    String[] cols = Arrays.stream(line.split(","))
+                                        .map(String::trim)
+                                        .toArray(String[]::new);
+
+                    // index = "-" 이면 건너뜀
+                    if (cols.length > 0 && cols[0].equals("-")) {
+                        continue;
                     }
 
-                    if (!isFirstLine && row.size() > 2) {
+                    List<String> row = new ArrayList<>(Arrays.asList(cols));
+
+                    if (row.size() >= 4) {
+                        row.remove(0); // index 제거
+                    }
+
+                    // 가격에 원 자 없앰
+                    if (row.size() > 2) {
+                        String price = row.get(2).trim().replaceAll("[^0-9]", "");
+                        row.set(2, price);
+                    }
+
+                    // 3) 최소 컬럼 길이 보장 (상품명, 카테고리, 가격)
+                    while (row.size() < 3) {
+                        row.add("");
+                    }
+
+                    // 4) 카테고리 수집
+                    if (!isFirstLine) {
                         String category = row.get(1).trim();
                         if (!category.isEmpty()) {
                             categorySet.add(category);
@@ -101,6 +131,7 @@ public class MainRankingsController {
                     isFirstLine = false;
                 }
             }
+
 
             // ✅ model에 데이터 전달
             model.addAttribute("csvData", csvData);
@@ -154,20 +185,28 @@ public class MainRankingsController {
         model.addAttribute("businessNumber", store.getBusinessNumber());
 
         // 영상 파일 목록 가져오기
-        Path uploadPath = Paths.get("src/main/resources/static/uploads/");
-        List<String> mp4List = new ArrayList<>();
-        try (Stream<Path> paths = Files.list(uploadPath)) {
-            mp4List = paths
-                    .filter(p -> p.toString().endsWith(".mp4"))
-                    .map(p -> "/uploads/" + p.getFileName().toString())
-                    .collect(Collectors.toList());
-        } catch (IOException e) {
+       try {
+            List<File> files = GoogleDriveUtil.listFilesInFolder(
+                    "1ZRAfqwSe7vnxMqN6rlu9KcJxTmMvxMBz",
+                    null
+            );
+        System.out.println("🎥 [Drive Video Files]");
+            List<String> videoList = files.stream()
+                    .filter(f -> {
+                        String name = f.getName().toLowerCase().replaceAll("\\s", "");
+                        return name.matches(".*\\.(mp4|avi|mov|mkv)$");
+                    })
+                    .map(File::getWebContentLink)
+                    .toList();
+
+            model.addAttribute("videoList", videoList);
+
+        } catch (IOException | GeneralSecurityException e) {
             e.printStackTrace();
+            model.addAttribute("videoList", Collections.emptyList());
         }
-
-        model.addAttribute("mp4List", mp4List); // 뷰로 전달
-
-        return "dashboard_video";  //
+        System.out.println("🎥 [Drive Video Files]");
+        return "dashboard_video";
     }
 
     @GetMapping("/store/{storeCode}/dashboard_comparison")

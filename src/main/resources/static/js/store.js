@@ -73,3 +73,7 @@ function updateVisibleRowIndices() {
         }
     });
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    updateVisibleRowIndices();   // ① 먼저 번호 붙임
+});

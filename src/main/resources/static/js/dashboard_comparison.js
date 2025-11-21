@@ -84,7 +84,7 @@ async function loadConversionTable() {
 
     // ⬇️ 단수 → 복수(배열 반환)로 변경
     const gazeFiles = findFilenamesByCondition(allFiles, "gaze-tracking", date, time);
-    const salesFiles = findFilenamesByCondition(allFiles, "real-sale", date, time);
+    const salesFiles = ["real-sale_latest.csv"];
 
     if (!gazeFiles.length || !salesFiles.length) {
         alert("조건에 맞는 파일을 찾을 수 없습니다.");
@@ -98,16 +98,15 @@ async function loadConversionTable() {
     const filteredGaze = category ? gazeData.filter(row => row['카테고리'] === category) : gazeData;
     const filteredSales = category ? salesData.filter(row => row['카테고리'] === category) : salesData;
 
-    // 바코드 기준 매칭
+    // 제품명 기준 매칭
     const merged = filteredGaze.map(gaze => {
-        const sale = filteredSales.find(s => s['상품바코드'] === gaze['상품바코드']);
+        const sale = filteredSales.find(s => s['상품명'] === gaze['상품명']);
         const saleCount = sale ? Number(sale['실판매수량']) : 0;
         const gazeCount = Number(gaze['시선추적수']);
         const rate = gazeCount ? ((saleCount / gazeCount) * 100).toFixed(1) + "%" : "0%";
-        const saleRank = sale ? sale['index'] : "-";
+        const saleRank   = sale ? (sale['index'] && sale['index'] !== '-' ? sale['index'] : "0") : "-";
 
         return {
-            순위: gaze['index'],
             제품명: gaze['상품명'],
             카테고리: gaze['카테고리'],
             가격: gaze['상품가격'],
@@ -124,9 +123,37 @@ async function loadConversionTable() {
 async function fetchAndParseCSV(url) {
     const response = await fetch(url);
     const text = await response.text();
+
+    const isGaze = url.includes("gaze-tracking");
+    const isSale = url.includes("real-sale");
+
+    // gaze-tracking CSV → header 없음
+    if (isGaze) {
+        const parsed = Papa.parse(text, { header: false, skipEmptyLines: true });
+        return parsed.data.map(cols => ({
+            index: cols[0],
+            상품명: cols[1],
+            카테고리: cols[2],
+            상품가격: cols[3],
+            상품바코드: cols[4] ?? "",
+            시선추적수: cols[5] ?? ""
+        }))
+        .filter(row =>
+            row.index !== "-" && row.index !== "" && row.index !== undefined
+        );
+    }
+
+    // real-sale CSV → 한글 헤더 존재
+    if (isSale) {
+        const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+        return parsed.data;
+    }
+
+    // 기본 fallback
     const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
     return parsed.data;
 }
+
 
 async function fetchManyCSVs(fileNames) {
     const urls = fileNames.map(n => `/api/drive/file?name=${encodeURIComponent(n)}`);
@@ -140,10 +167,10 @@ function renderConversionTable(data) {
     const tbody = document.getElementById("conversionTableBody");
     tbody.innerHTML = '';
 
-    data.forEach(row => {
+    data.forEach((row, idx) => {
         tbody.innerHTML += `
             <tr>
-                <td>${row.순위}</td>
+                <td>${idx + 1}</td>   <!-- 여기!! 순위 다시 매김 -->
                 <td>${row.제품명}</td>
                 <td>${row.카테고리}</td>
                 <td>${row.가격}</td>
@@ -187,7 +214,7 @@ async function loadCompareTable() {
     const allFiles = await fetchCsvFilenames();
 
     const gazeFiles = findFilenamesByCondition(allFiles, "gaze-tracking", date, time);
-    const salesFiles = findFilenamesByCondition(allFiles, "real-sale", date, time);
+    const salesFiles = ["real-sale_latest.csv"];
 
     if (!gazeFiles.length || !salesFiles.length) {
         alert("조건에 맞는 파일을 찾을 수 없습니다.");
@@ -263,7 +290,7 @@ async function populateCategoryOptions() {
     try {
         const files = await fetchCsvFilenames();
         const gazeFiles  = findFilenamesByCondition(files, "gaze-tracking", date, time);
-        const salesFiles = findFilenamesByCondition(files, "real-sale",     date, time);
+        const salesFiles = ["real-sale_latest.csv"];
 
         if (!gazeFiles.length && !salesFiles.length) return;
 

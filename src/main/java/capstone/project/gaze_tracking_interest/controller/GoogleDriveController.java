@@ -59,7 +59,7 @@ public class GoogleDriveController {
 
             // ✅ 확장자로 필터링 (확실함)
             List<Map<String, String>> videoList = files.stream()
-                    .filter(file -> file.getName().toLowerCase().endsWith(".mp4"))
+                    .filter(file -> file.getName().toLowerCase().endsWith(".avi"))
                     .map(file -> {
                         Map<String, String> map = new HashMap<>();
                         map.put("name", file.getName());
