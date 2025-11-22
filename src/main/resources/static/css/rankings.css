@@ -1,17 +1,27 @@
 * {
-    font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif !important;
+    font-family: 'Do Hyeon', sans-serif;
     font-weight: 500;
 }
 
+.nav-link {
+    font-family: 'Science Gothic', sans-serif !important;
+    font-weight: 500;
+    /* letter-spacing: 0.3px;
+    font-weight: bold; */
+}
+
 .navbar-brand {
-    font-weight: bold;
+    font-family: 'Science Gothic', sans-serif !important;
+    font-weight: 500;
+    /* font-weight: bold; */
     font-size: 1.6rem;
     line-height: 1.2;
 }
 .nav-link.active {
-    background-color: #0d6efd;
+    background-color: #3083ff;
     color: white !important;
     font-weight: bold;
+    border-radius: 5px;
 }
 
 .navbar-toggler {

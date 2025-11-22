@@ -1,0 +1,79 @@
+.promo-header {
+    margin-top:10px;
+    font-size: 22px;
+    font-weight: 700;
+    padding: 16px;
+    padding-top:0px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+}
+
+.promo-image {
+    padding: 16px;
+    width: 50%;      /* 전체의 50% 크기 */
+    max-width: 300px; /* 최대 300px */
+    border-radius: 12px;
+    display: block;
+    margin: 0 auto;  /* 가운데 정렬 */
+}
+
+.promo-title {
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-top: 12px;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.promo-price {
+    text-align: center;
+}
+
+.promo-price .sale-price {
+    padding-left: 16px;
+    font-size: 22px;
+    color: #FF4E3F;
+    font-weight: bold;
+}
+
+.original-price {
+    text-decoration: line-through;
+    margin-left: 4px;
+    color: #999;
+}
+
+.promo-slider {
+    padding-left: 16px;
+    padding-right: 16px;
+    display: flex;
+    overflow-x: scroll;
+    gap: 12px;
+    padding: 12px;
+}
+
+.promo-item {
+    padding-left: 16px;
+    padding-right: 16px;
+    min-width: 120px;
+    text-align: center;
+}
+
+.promo-item img {
+    width: 60px;      /* 원하는 너비 */
+    height: auto;     /* 비율 유지 */
+    border-radius: 8px;
+}
+
+
+.promo-period {
+    padding-left: 16px;
+    padding-right: 16px;
+    text-align: center;
+}
+
+.more-title {
+    padding-left: 16px;
+    padding-right: 16px;
+    /* text-align: center; */
+}

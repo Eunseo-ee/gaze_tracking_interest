@@ -1,15 +1,34 @@
+// 1) 바코드 → 이동 URL 매핑 테이블
+const barcodeRoutes = {
+    "37474711": "/promotion_detail1",
+    "85039055": "/promotion_detail2",
+    "58387552": "/promotion_detail3",
+    "54283315": "/promotion_detail4",
+    "66799143": "/promotion_detail5",
+    "14466259": "/promotion_detail6"
+};
+
+// 2) 스캐너 시작 코드
 const html5QrCode = new Html5Qrcode("reader");
-const config = { fps: 10, qrbox: 250 }; // 바코드 박스 사이즈
+const config = { fps: 10, qrbox: 250 };
 
 html5QrCode.start(
-    { facingMode: "environment" }, // 후면 카메라
+    { facingMode: "environment" },
     config,
     (decodedText, decodedResult) => {
-        alert("📦 바코드 인식됨: " + decodedText);
+
+        // 3) 인식된 바코드값을 매핑 확인 → 이동
+        const route = barcodeRoutes[decodedText];
+
+        if (route) {
+            window.location.href = route;   // 페이지 이동
+        } else {
+            alert("등록되지 않은 바코드입니다: " + decodedText);
+        }
+
         html5QrCode.stop();
     },
     (errorMessage) => {
-        // 인식 실패시 로그 (선택)
         console.warn("스캔 실패:", errorMessage);
     }
 );

@@ -31,17 +31,17 @@ public class MainRankingsController {
         return "main_rankings";  // 기본 메인 페이지
     }
 
-    @GetMapping("/store/{storeCode}/promotion")
-    public String promotion(@PathVariable String storeCode, Model model) {
+    @GetMapping("/store/B06/promotion")
+    public String promotion(Model model) {
         model.addAttribute("activeTab", "promotion");
-        model.addAttribute("storeCode", storeCode);
+        model.addAttribute("storeCode", "B06");
         return "promotion";
     }
 
-    @GetMapping({"/store/{storeCode}/rankings", "/api/store/{storeCode}"})
-    public String rankings(@PathVariable String storeCode, Model model) {
+    @GetMapping({"/store/B06/rankings", "/api/store/B06"})
+    public String rankings(Model model) {
         model.addAttribute("activeTab", "rankings");
-        model.addAttribute("storeCode", storeCode);
+        model.addAttribute("storeCode", "B06");
 
         try {
             // ✅ Drive 폴더 내 전체 파일 가져오기
@@ -148,39 +148,39 @@ public class MainRankingsController {
     }
 
 
-    @GetMapping("/store/{storeCode}/owner")
-    public String owner(@PathVariable String storeCode, Model model) {
-        Store store = storeRepository.findByStoreCode(storeCode)
-                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + storeCode));
+    @GetMapping("/store/B06/owner")
+    public String owner(Model model) {
+        Store store = storeRepository.findByStoreCode("B06")
+                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + "B06"));
 
         model.addAttribute("activeTab", "owner");
-        model.addAttribute("storeCode", storeCode);
+        model.addAttribute("storeCode", "B06");
         model.addAttribute("storeName", store.getStoreName());
         model.addAttribute("businessNumber", store.getBusinessNumber());
 
         return "owner";  //
     }
 
-    @GetMapping("/store/{storeCode}/owner_dashboard")
-    public String dashboard(@PathVariable String storeCode, Model model) {
-        Store store = storeRepository.findByStoreCode(storeCode)
-                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + storeCode));
+    @GetMapping("/store/B06/owner_dashboard")
+    public String dashboard(Model model) {
+        Store store = storeRepository.findByStoreCode("B06")
+                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + "B06"));
 
         model.addAttribute("activeTab", "owner");
-        model.addAttribute("storeCode", storeCode);
+        model.addAttribute("storeCode", "B06");
         model.addAttribute("storeName", store.getStoreName());
         model.addAttribute("businessNumber", store.getBusinessNumber());
 
         return "dashboard";  //
     }
 
-    @GetMapping("/store/{storeCode}/dashboard_video")
-    public String dashboard_video(@PathVariable String storeCode, Model model) {
-        Store store = storeRepository.findByStoreCode(storeCode)
-                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + storeCode));
+    @GetMapping("/store/B06/dashboard_video")
+    public String dashboard_video(Model model) {
+        Store store = storeRepository.findByStoreCode("B06")
+                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + "B06"));
 
         model.addAttribute("activeTab", "owner");
-        model.addAttribute("storeCode", storeCode);
+        model.addAttribute("storeCode", "B06");
         model.addAttribute("storeName", store.getStoreName());
         model.addAttribute("businessNumber", store.getBusinessNumber());
 
@@ -209,31 +209,31 @@ public class MainRankingsController {
         return "dashboard_video";
     }
 
-    @GetMapping("/store/{storeCode}/dashboard_comparison")
-    public String dashboard_comparison(@PathVariable String storeCode, Model model) {
-        Store store = storeRepository.findByStoreCode(storeCode)
-                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + storeCode));
+    @GetMapping("/store/B06/dashboard_comparison")
+    public String dashboard_comparison(Model model) {
+        Store store = storeRepository.findByStoreCode("B06")
+                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + "B06"));
 
         model.addAttribute("activeTab", "owner");
-        model.addAttribute("storeCode", storeCode);
+        model.addAttribute("storeCode", "B06");
         model.addAttribute("storeName", store.getStoreName());
         model.addAttribute("businessNumber", store.getBusinessNumber());
 
         return "dashboard_comparison";  //
     }
 
-    @GetMapping("/store/{storeCode}/dashboard_upload")
-public String dashboard_upload(@PathVariable String storeCode, Model model) {
-    Store store = storeRepository.findByStoreCode(storeCode)
-            .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + storeCode));
+    @GetMapping("/store/B06/dashboard_upload")
+    public String dashboard_upload(Model model) {
+        Store store = storeRepository.findByStoreCode("B06")
+                .orElseThrow(() -> new IllegalArgumentException("가게가 존재하지 않습니다: " + "B06"));
 
-    model.addAttribute("activeTab", "owner");
-    model.addAttribute("storeCode", storeCode);
-    model.addAttribute("storeName", store.getStoreName());
-    model.addAttribute("businessNumber", store.getBusinessNumber());
+        model.addAttribute("activeTab", "owner");
+        model.addAttribute("storeCode", "B06");
+        model.addAttribute("storeName", store.getStoreName());
+        model.addAttribute("businessNumber", store.getBusinessNumber());
 
-    return "dashboard_upload";  // ✅ templates/dashboard_upload.html 로 연결
-}
+        return "dashboard_upload";  // ✅ templates/dashboard_upload.html 로 연결
+    }
 
 }
 
