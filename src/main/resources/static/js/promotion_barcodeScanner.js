@@ -1,11 +1,11 @@
 // 1) 바코드 → 이동 URL 매핑 테이블
 const barcodeRoutes = {
-    "37474711": "/promotion_detail1",
-    "85039055": "/promotion_detail2",
-    "58387552": "/promotion_detail3",
-    "54283315": "/promotion_detail4",
-    "66799143": "/promotion_detail5",
-    "14466259": "/promotion_detail6"
+    "37474711": "/store/B06/promotion/promotion_detail1",
+    "85039055": "/store/B06/promotion/promotion_detail2",
+    "58387552": "/store/B06/promotion/promotion_detail3",
+    "54283315": "/store/B06/promotion/promotion_detail4",
+    "66799143": "/store/B06/promotion/promotion_detail5",
+    "14466259": "/store/B06/promotion/promotion_detail6"
 };
 
 // 2) 스캐너 시작 코드

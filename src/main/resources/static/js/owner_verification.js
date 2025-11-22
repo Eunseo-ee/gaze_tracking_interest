@@ -15,7 +15,6 @@ function submitPassword() {
         })
     }).then(res => {
         if (res.ok) {
-            alert("로그인 성공");
             window.location.href = `/store/${storeCode}/owner_dashboard`;
         } else {
             alert("비밀번호가 틀렸습니다");
@@ -55,7 +54,6 @@ function verifyBiz() {
         .then(res => res.json())
         .then(data => {
             if (data.verified) {
-                alert("사업자 인증 성공!");
                 document.getElementById("passwordSetForm").style.display = "block"; // ✅ 비번폼 보여주기
             } else {
                 alert("사업자번호가 일치하지 않습니다.");
