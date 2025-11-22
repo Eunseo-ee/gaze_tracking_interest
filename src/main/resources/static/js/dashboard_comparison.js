@@ -135,8 +135,7 @@ async function fetchAndParseCSV(url) {
             상품명: cols[1],
             카테고리: cols[2],
             상품가격: cols[3],
-            상품바코드: cols[4] ?? "",
-            시선추적수: cols[5] ?? ""
+            시선추적수: cols[4] ?? "0"
         }))
         .filter(row =>
             row.index !== "-" && row.index !== "" && row.index !== undefined
