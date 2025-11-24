@@ -81,3 +81,28 @@ function savePassword() {
             alert("이제부터 비밀번호로 로그인하실 수 있습니다.");
         });
 }
+// 비밀번호 입력창에서 엔터 누르면 submitPassword() 실행
+document.addEventListener("DOMContentLoaded", () => {
+    const pwInput = document.getElementById("passwordInput");
+    const bizInput = document.getElementById("bizNumInput");
+    const newPwInput = document.getElementById("newPassword");
+
+    if (pwInput) {
+        pwInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") submitPassword();
+        });
+    }
+
+    if (bizInput) {
+        bizInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") verifyBiz();
+        });
+    }
+
+    if (newPwInput) {
+        newPwInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") savePassword();
+        });
+    }
+});
+

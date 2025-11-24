@@ -120,7 +120,7 @@ public class MainRankingsController {
                     }
 
                     // 4) 카테고리 수집
-                    if (!isFirstLine) {
+                    if (row.size() > 2) {
                         String category = row.get(1).trim();
                         if (!category.isEmpty()) {
                             categorySet.add(category);

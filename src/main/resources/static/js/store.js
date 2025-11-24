@@ -1,18 +1,25 @@
 function applyCategoryFilter() {
     // 선택된 카테고리 값 추출
     const selectedCategories = Array.from(document.querySelectorAll('#categoryFilterForm input[name="categories"]:checked'))
-        .map(input => input.value);
+        .map(input => input.value.trim());
 
     // 테이블 행 선택
-    const rows
-        = document.querySelectorAll('tbody tr');
+    const rows = document.querySelectorAll('tbody tr');
 
     rows.forEach(row => {
         const categoryCell = row.children[2]; // 카테고리 셀 (index 2)
-        const category = categoryCell.textContent.trim();
+        
+        // 원본 카테고리
+        let category = categoryCell.textContent;
+
+        // ⭐ 문제 해결 핵심: 모든 제어문자 + 공백 정리
+        const normalizedCategory = category
+            .replace(/[\r\n\t]/g, "") // 줄바꿈·탭 제거
+            .replace(/\s+/g, "")      // 중간 공백 제거
+            .trim();                  // 앞뒤 공백 제거
 
         // 선택된 카테고리만 보여주기
-        if (selectedCategories.length === 0 || selectedCategories.includes(category)) {
+        if (selectedCategories.length === 0 || selectedCategories.includes(normalizedCategory)) {
             row.style.display = '';
         } else {
             row.style.display = 'none';

@@ -12,6 +12,149 @@
     <link href="https://fonts.googleapis.com/css2?family=Science+Gothic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
 
+    <style>
+    body {
+        background: #f8f9fa;
+        font-family: "Do Hyeon", sans-serif;
+    }
+
+    .container {
+        margin-top: 30px;
+        max-width: 500px;
+    }
+
+    /* 공통 인풋 스타일 */
+    input[type="password"],
+    input[type="text"] {
+        width: 100%;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 16px;
+        box-sizing: border-box;
+        background: #fff;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #4a90e2;
+        box-shadow: 0 0 4px rgba(74, 144, 226, 0.6);
+    }
+
+    /* 버튼 공통 스타일 */
+    button {
+        padding: 10px 18px;
+        background: #0d6efd; /* 파란색 */
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        color: white; /* 글씨는 흰색 */
+        transition: 0.2s;
+        float: right; /* 오른쪽 정렬 */
+        margin-top: 5px;
+        margin-bottom: 10px;
+    }
+
+    button:hover {
+        background: #0b5ed7; /* 더 진한 파란색 */
+    }
+
+    /* 버튼 간 float 해제용 */
+    .container::after {
+        content: "";
+        display: block;
+        clear: both;
+    }
+
+    /* 안내 텍스트 */
+    a {
+        font-size: 15px;
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    h3 {
+        margin-top: 20px;
+        margin-bottom: 15px;
+        font-size: 20px;
+    }
+
+    #savePasswordMsg {
+        margin-top: 10px;
+        font-size: 15px;
+        color: green;
+    }
+
+    /* 폼 박스 간격 */
+    #bizVerificationForm {
+        padding: 0px 10px 0px 10px;
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+
+    #passwordSetForm {
+        padding: 25px 10px 0px 10px;
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+
+    .input-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    /* 공통 input 스타일 */
+    .input-row input {
+        flex: 1;
+        height: 44px;
+        padding: 0 14px;
+        font-size: 16px;
+        
+        border-radius: 6px;
+        box-sizing: border-box;
+        background: #fff;
+    }
+
+    .input-row input:focus {
+        outline: none;
+        border-color: #4a90e2;
+        box-shadow: 0 0 4px rgba(74, 144, 226, 0.6);
+    }
+
+    /* 공통 버튼 스타일 */
+    .input-row button {
+        height: 44px;
+        padding: 0 18px;
+        font-size: 16px;
+        border: none;
+        border-radius: 6px;
+        background: #0d6efd;
+        color: #fff;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: 0.2s;
+        box-sizing: border-box;
+        margin-top:0;
+    }
+
+    .input-row button:hover {
+        background: #0b5ed7;
+    }
+</style>
+
+
 </head>
 <body>
 
@@ -48,20 +191,27 @@
 
 <!-- 콘텐츠 -->
 <div class="container mt-4">
-    <input type="password" placeholder="비밀번호 입력" id="passwordInput" />
-    <button onclick="submitPassword()">확인</button>
+    <div class="input-row">
+        <input type="password" id="passwordInput" placeholder="비밀번호 입력"/>
+        <button onclick="submitPassword()">확인</button>
+    </div>
+
     <p><a href="#" onclick="showBizVerification()">아직 점주 인증을 하지 않으셨나요?</a></p>
 
     <div id="bizVerificationForm" style="display:none">
         <h3>사업자 인증</h3>
-        <input type="text" id="bizNumInput" placeholder="사업자번호 입력">
-        <button onclick="verifyBiz()">인증하기</button>
+
+        <div class="input-row">
+            <input type="text" id="bizNumInput" placeholder="사업자번호 입력"/>
+            <button onclick="verifyBiz()">인증하기</button>
+        </div>
     </div>
 
-    <!-- 비밀번호 설정 폼 -->
-    <div id="passwordSetForm" style="display: none; margin-top: 10px;">
-        <input type="password" id="newPassword" placeholder="비밀번호 설정" />
-        <button onclick="savePassword()">비밀번호 저장</button>
+    <div id="passwordSetForm" style="display:none; margin-top:10px;">
+        <div class="input-row">
+            <input type="password" id="newPassword" placeholder="비밀번호 설정"/>
+            <button onclick="savePassword()">저장</button>
+        </div>
         <p id="savePasswordMsg"></p>
     </div>
 </div>
