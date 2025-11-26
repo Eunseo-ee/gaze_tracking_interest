@@ -9,17 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const start = String(h).padStart(2, '0') + ':00';
         const end = String((h + 1) % 24).padStart(2, '0') + ':00';
         const label = `${start}~${end}`;
-        // value는 "HH:mm-HH:mm" (파싱 쉽게)
         timeInput.add(new Option(label, `${start}-${end}`));
     }
 
-    // 날짜/시간 변경 시 카테고리 갱신
     ["dateInput", "timeInput"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('change', populateCategoryOptions);
     });
 
-    // 초기 1회 (필요하면)
     populateCategoryOptions();
 });
 
@@ -31,80 +28,108 @@ function requireDateOrAlert(date) {
     return true;
 }
 
-// 백엔드에 있는 드라이브 폴더 내 모든 csv 파일명 가져오기
+// 백엔드에서 CSV 파일 목록 가져오기
 async function fetchCsvFilenames() {
     const res = await fetch("/api/drive/csv-list");
-    if (!res.ok) {
-        const errorText = await res.text();
-        console.error("CSV 목록 불러오기 실패:", res.status, errorText);
-        throw new Error("CSV 목록 불러오기 실패");
-    }
-    return await res.json(); // 예: ["gaze-tracking_2025-08-26_1800-1900.csv", ...]
+    if (!res.ok) throw new Error("CSV 목록 불러오기 실패");
+    return await res.json();
 }
 
-// 주어진 time value("HH:mm-HH:mm")에서 가능한 모든 키 변형을 만들어줌
+// 시간대별 파일명 변형 생성
 function buildTimeKeys(time) {
-    // time 예: "18:00-19:00"
-    const [s, e] = time.split('-'); // "18:00", "19:00"
+    const [s, e] = time.split('-');
     const sH = s.slice(0, 2);
     const eH = e.slice(0, 2);
     const sHHmm = s.replace(':', '');
     const eHHmm = e.replace(':', '');
     return [
-        `${s}-${e}`,           // "18:00-19:00"
-        `${sHHmm}-${eHHmm}`,   // "1800-1900"
-        `${sH}~${eH}`,         // "18~19"
-        `${sH}-${eH}`,         // "18-19"
-        `${sH}_${eH}`,         // "18_19" (혹시 모를 포맷)
+        `${s}-${e}`,
+        `${sHHmm}-${eHHmm}`,
+        `${sH}~${eH}`,
+        `${sH}-${eH}`,
+        `${sH}_${eH}`,
         `${sHHmm}~${eHHmm}`,
     ];
 }
 
-// ✅ 배열을 반환: 특정 시간대면 길이 1, "전체"면 해당 날짜의 모든 시간대 파일 목록
+// 파일 찾기
 function findFilenamesByCondition(files, prefix, date, time) {
-    // 전체(빈 문자열)면 하루치 전부
     if (!time) {
         const startsWith = `${prefix}_${date}_`;
         return files.filter(name => name.startsWith(startsWith) && name.endsWith('.csv'));
     }
-
-    // 특정 시간대면 여러 포맷 후보 중 일치하는 것 1개 선택
     const candidates = buildTimeKeys(time).map(key => `${prefix}_${date}_${key}.csv`);
     const hit = files.find(name => candidates.includes(name));
     return hit ? [hit] : [];
 }
 
+function normalizeName(name) {
+    return String(name)
+        .trim()                 // 앞뒤 공백 제거
+        .replace(/\u200B/g, "") // zero-width space 제거
+        .replace(/\s+/g, " ");  // 중간 여러 공백 → 1개 공백
+}
+
+// 제품별 시선수 합산
+function aggregateGazeByProduct(rows) {
+    const map = new Map();
+
+    for (const row of rows) {
+        const key = normalizeName(row['상품명']);
+        const gazeCount = Number(row['시선추적수']) || 0;
+
+        if (!map.has(key)) {
+            map.set(key, {
+                상품명: key,
+                카테고리: row['카테고리'],
+                상품가격: row['상품가격'],
+                시선추적수: gazeCount
+            });
+        } else {
+            map.get(key).시선추적수 += gazeCount;
+        }
+    }
+
+    return Array.from(map.values());
+}
+
+// 구매 전환율 테이블 로딩
 async function loadConversionTable() {
     const date = document.getElementById("dateInput").value;
     if (!requireDateOrAlert(date)) return;
-    const time = document.getElementById("timeInput").value; // ""이면 전체
+    const time = document.getElementById("timeInput").value;
     const category = document.getElementById("categoryInput").value;
 
     const allFiles = await fetchCsvFilenames();
 
-    // ⬇️ 단수 → 복수(배열 반환)로 변경
     const gazeFiles = findFilenamesByCondition(allFiles, "gaze-tracking", date, time);
-    const salesFiles = ["real-sale_latest.csv"];
+
+    // ⭐ 시간대에 따라 sales 파일 선택
+    const salesFiles = time
+        ? ["real-sale_latest.csv"]               // 특정 시간대
+        : ["real-sale_by_day_latest.csv"];       // 전체 시간
 
     if (!gazeFiles.length || !salesFiles.length) {
         alert("조건에 맞는 파일을 찾을 수 없습니다.");
         return;
     }
 
-    // ⬇️ 여러 CSV 합치기
     const gazeData = await fetchManyCSVs(gazeFiles);
     const salesData = await fetchManyCSVs(salesFiles);
 
-    const filteredGaze = category ? gazeData.filter(row => row['카테고리'] === category) : gazeData;
+    let filteredGaze = category ? gazeData.filter(row => row['카테고리'] === category) : gazeData;
     const filteredSales = category ? salesData.filter(row => row['카테고리'] === category) : salesData;
 
-    // 제품명 기준 매칭
+    if (!time) {
+        filteredGaze = aggregateGazeByProduct(filteredGaze);
+    }
+
     const merged = filteredGaze.map(gaze => {
         const sale = filteredSales.find(s => s['상품명'] === gaze['상품명']);
         const saleCount = sale ? Number(sale['실판매수량']) : 0;
         const gazeCount = Number(gaze['시선추적수']);
         const rate = gazeCount ? ((saleCount / gazeCount) * 100).toFixed(1) + "%" : "0%";
-        const saleRank   = sale ? (sale['index'] && sale['index'] !== '-' ? sale['index'] : "0") : "-";
+        const saleRank = sale ? (sale['index'] && sale['index'] !== '-' ? sale['index'] : "0") : "-";
 
         return {
             제품명: gaze['상품명'],
@@ -127,7 +152,6 @@ async function fetchAndParseCSV(url) {
     const isGaze = url.includes("gaze-tracking");
     const isSale = url.includes("real-sale");
 
-    // gaze-tracking CSV → header 없음
     if (isGaze) {
         const parsed = Papa.parse(text, { header: false, skipEmptyLines: true });
         return parsed.data.map(cols => ({
@@ -136,31 +160,23 @@ async function fetchAndParseCSV(url) {
             카테고리: cols[2],
             상품가격: cols[3],
             시선추적수: cols[4] ?? "0"
-        }))
-        .filter(row =>
-            row.index !== "-" && row.index !== "" && row.index !== undefined
-        );
+        }));
     }
 
-    // real-sale CSV → 한글 헤더 존재
     if (isSale) {
         const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
         return parsed.data;
     }
 
-    // 기본 fallback
     const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
     return parsed.data;
 }
 
-
 async function fetchManyCSVs(fileNames) {
     const urls = fileNames.map(n => `/api/drive/file?name=${encodeURIComponent(n)}`);
     const lists = await Promise.all(urls.map(fetchAndParseCSV));
-    // 2차원 배열 -> 1차원으로 합치기
     return lists.flat();
 }
-
 
 function renderConversionTable(data) {
     const tbody = document.getElementById("conversionTableBody");
@@ -169,7 +185,7 @@ function renderConversionTable(data) {
     data.forEach((row, idx) => {
         tbody.innerHTML += `
             <tr>
-                <td>${idx + 1}</td>   <!-- 여기!! 순위 다시 매김 -->
+                <td>${idx + 1}</td>
                 <td>${row.제품명}</td>
                 <td>${row.카테고리}</td>
                 <td>${row.가격}</td>
@@ -183,54 +199,45 @@ function renderConversionTable(data) {
 }
 
 function showSection(section) {
-    console.log("🟢 showSection 실행됨:", section);
-
     const compareSection = document.getElementById("compareSection");
     const conversionSection = document.getElementById("conversionSection");
 
     if (section === "compare") {
         compareSection.classList.remove("hidden");
         conversionSection.classList.add("hidden");
-
-        console.log("🟢 순위 비교 테이블 로딩 시작");
         loadCompareTable();
-
     } else if (section === "conversion") {
         compareSection.classList.add("hidden");
         conversionSection.classList.remove("hidden");
-
-        console.log("🟢 구매 전환율 테이블 로딩 시작");
         loadConversionTable();
     }
 }
 
+// ⭐ 시선추적 결과 비교 테이블
 async function loadCompareTable() {
     const date = document.getElementById("dateInput").value;
     if (!requireDateOrAlert(date)) return;
-    const time = document.getElementById("timeInput").value; // ""이면 전체
+    const time = document.getElementById("timeInput").value;
     const category = document.getElementById("categoryInput").value;
 
     const allFiles = await fetchCsvFilenames();
 
     const gazeFiles = findFilenamesByCondition(allFiles, "gaze-tracking", date, time);
-    const salesFiles = ["real-sale_latest.csv"];
 
-    if (!gazeFiles.length || !salesFiles.length) {
-        alert("조건에 맞는 파일을 찾을 수 없습니다.");
-        return;
-    }
+    // ⭐ 시간대별 sales 파일 분기
+    const salesFiles = time
+        ? ["real-sale_latest.csv"]
+        : ["real-sale_by_day_latest.csv"];
+
+    if (!gazeFiles.length || !salesFiles.length) return;
 
     const gazeData = await fetchManyCSVs(gazeFiles);
     const salesData = await fetchManyCSVs(salesFiles);
 
-    const filteredGaze = category ? gazeData.filter(r => r['카테고리'] === category) : gazeData;
-    const filteredSales = category ? salesData.filter(r => r['카테고리'] === category) : salesData;
+    let filteredGaze = category ? gazeData.filter(r => r['카테고리'] === category) : gazeData;
+    let filteredSales = category ? salesData.filter(r => r['카테고리'] === category) : salesData;
 
-    console.log("선택된 날짜:", date);
-    console.log("선택된 시간:", time || '전체');
-    console.log("선택된 카테고리:", category || '전체');
-    console.log("찾은 gaze 파일:", gazeFiles);
-    console.log("찾은 sales 파일:", salesFiles);
+    if (!time) filteredGaze = aggregateGazeByProduct(filteredGaze);
 
     renderCompareTable(filteredGaze, filteredSales);
 }
@@ -250,19 +257,17 @@ function renderCompareTable(gazeRows, salesRows) {
     });
 }
 
-// 공백/케이스/널 처리 유틸
+// 카테고리 옵션 채우기
 function normCat(v) {
     if (v == null) return null;
     const s = String(v).trim();
     return s.length ? s : null;
 }
 
-// CSV에서 카테고리 집합 추출
 function extractCategories(...datasets) {
     const set = new Set();
     for (const data of datasets) {
         for (const row of data) {
-            // 한/영 컬럼명 둘 다 시도
             const raw = row['카테고리'] ?? row['category'] ?? row['Category'];
             const c = normCat(raw);
             if (c) set.add(c);
@@ -271,47 +276,40 @@ function extractCategories(...datasets) {
     return Array.from(set);
 }
 
-// 카테고리 <select>를 CSV 기반으로 채우기
 async function populateCategoryOptions() {
     const date = document.getElementById("dateInput").value;
-    const time = document.getElementById("timeInput").value; // ""면 전체
+    const time = document.getElementById("timeInput").value;
     const sel = document.getElementById("categoryInput");
 
-    // 선택 유지용
     const prev = sel.value;
-
-    // 기본값만 우선 세팅
     sel.innerHTML = '<option value="">전체</option>';
 
-    // 날짜가 없으면 더 진행하지 않음
     if (!date) return;
 
     try {
         const files = await fetchCsvFilenames();
-        const gazeFiles  = findFilenamesByCondition(files, "gaze-tracking", date, time);
-        const salesFiles = ["real-sale_latest.csv"];
+        const gazeFiles = findFilenamesByCondition(files, "gaze-tracking", date, time);
+
+        // ⭐ 시간대에 따라 sales 파일 선택
+        const salesFiles = time
+            ? ["real-sale_latest.csv"]
+            : ["real-sale_by_day_latest.csv"];
 
         if (!gazeFiles.length && !salesFiles.length) return;
 
-        // 해당 날짜/시간(또는 전체 시간)의 CSV들을 모두 합쳐서 카테고리 추출
         const [gazeData, salesData] = await Promise.all([
-            gazeFiles.length  ? fetchManyCSVs(gazeFiles)  : Promise.resolve([]),
+            gazeFiles.length ? fetchManyCSVs(gazeFiles) : Promise.resolve([]),
             salesFiles.length ? fetchManyCSVs(salesFiles) : Promise.resolve([]),
         ]);
 
         const cats = extractCategories(gazeData, salesData)
-            .sort((a, b) => a.localeCompare(b, 'ko')); // 보기 좋게 정렬
+            .sort((a, b) => a.localeCompare(b, 'ko'));
 
-        // 옵션 채우기
-        for (const c of cats) {
-            sel.add(new Option(c, c));
-        }
+        for (const c of cats) sel.add(new Option(c, c));
 
-        // 이전 선택이 아직 유효하면 유지
         if (prev && cats.includes(prev)) sel.value = prev;
 
     } catch (e) {
         console.error("카테고리 옵션 로딩 실패:", e);
-        // 실패 시엔 “전체”만 유지
     }
 }
