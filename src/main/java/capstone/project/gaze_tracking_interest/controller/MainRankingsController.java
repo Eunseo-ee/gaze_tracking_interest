@@ -1,6 +1,7 @@
 package capstone.project.gaze_tracking_interest.controller;
 
-import capstone.project.gaze_tracking_interest.config.GoogleDriveUtil;
+import capstone.project.gaze_tracking_interest.datasource.DataFile;
+import capstone.project.gaze_tracking_interest.datasource.DataSourceService;
 import capstone.project.gaze_tracking_interest.entity.Store;
 import capstone.project.gaze_tracking_interest.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,17 +15,16 @@ import java.nio.file.Files;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import com.google.api.services.drive.model.File;
 
 @Controller
 @RequiredArgsConstructor
 public class MainRankingsController {
 
     private final StoreRepository storeRepository;
+    private final DataSourceService dataSource;
 
     @GetMapping("/")
     public String home() {
@@ -44,25 +44,10 @@ public class MainRankingsController {
         model.addAttribute("storeCode", "B06");
 
         try {
-            // ✅ Drive 폴더 내 전체 파일 가져오기
-            List<com.google.api.services.drive.model.File> files =
-                    GoogleDriveUtil.listFilesInFolder("1ZRAfqwSe7vnxMqN6rlu9KcJxTmMvxMBz", null);
+            // ✅ 데이터 소스(Drive/로컬)에서 최신 시선추적 CSV 선택
+            Optional<DataFile> latest = dataSource.findLatestGazeCsv();
 
-            System.out.println("📂 [Drive 파일 목록]");
-            for (var f : files) {
-                System.out.println(" - " + f.getName() + " (" + f.getMimeType() + ")");
-            }
-
-            // ✅ CSV 파일만 필터링
-            List<File> csvFiles = files.stream()
-                .filter(f -> {
-                    String name = f.getName().toLowerCase();
-                    return name.startsWith("gaze-tracking") && name.endsWith(".csv");
-                })
-                .toList();
-
-
-            if (csvFiles.isEmpty()) {
+            if (latest.isEmpty()) {
                 System.out.println("⚠️ CSV 파일이 없습니다.");
                 model.addAttribute("csvUrl", null);
                 model.addAttribute("csvData", null);
@@ -70,17 +55,12 @@ public class MainRankingsController {
                 return "main_rankings";
             }
 
-            // ✅ 최신 CSV 파일 선택
-            com.google.api.services.drive.model.File csvFile = csvFiles.stream()
-                    .max(Comparator.comparing(f -> f.getModifiedTime().getValue()))
-                    .get();
+            DataFile csvFile = latest.get();
+            System.out.println("✅ 최신 CSV 파일: " + csvFile.name());
 
-            System.out.println("✅ 최신 CSV 파일: " + csvFile.getName());
+            model.addAttribute("csvUrl", csvFile.webViewLink());
 
-            model.addAttribute("csvUrl", csvFile.getWebViewLink());
-
-            // ✅ Drive에서 CSV 파일 내용 다운로드
-            String csvContent = GoogleDriveUtil.downloadFileContent(csvFile.getId());
+            String csvContent = dataSource.readContent(csvFile);
             List<List<String>> csvData = new ArrayList<>();
             Set<String> categorySet = new TreeSet<>();
 
@@ -185,27 +165,17 @@ public class MainRankingsController {
         model.addAttribute("businessNumber", store.getBusinessNumber());
 
         // 영상 파일 목록 가져오기
-       try {
-            List<File> files = GoogleDriveUtil.listFilesInFolder(
-                    "1ZRAfqwSe7vnxMqN6rlu9KcJxTmMvxMBz",
-                    null
-            );
-        System.out.println("🎥 [Drive Video Files]");
-            List<String> videoList = files.stream()
-                    .filter(f -> {
-                        String name = f.getName().toLowerCase().replaceAll("\\s", "");
-                        return name.matches(".*\\.(mp4|avi|mov|mkv)$");
-                    })
-                    .map(File::getWebContentLink)
+        try {
+            List<String> videoList = dataSource.listVideos().stream()
+                    .map(DataFile::webContentLink)
                     .toList();
 
             model.addAttribute("videoList", videoList);
 
-        } catch (IOException | GeneralSecurityException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             model.addAttribute("videoList", Collections.emptyList());
         }
-        System.out.println("🎥 [Drive Video Files]");
         return "dashboard_video";
     }
 
