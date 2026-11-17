@@ -1,93 +1,113 @@
-# 👀 시선추적 기반 관심도 분석 & 마케팅 프로그램
+# 시선추적 기반 상품 관심도 분석 웹
 
-개발 기간: **2025.04 ~ 진행 중**  
-개발 형태: **팀 프로젝트**  
-담당 역할: **웹 개발 전반 (프론트엔드 + 백엔드)**
+매장 영상의 시선추적 결과(CSV)를 읽어 상품별 주목도 순위, 시간대 비교, 구매 전환율을 보여주는 Spring Boot 웹 서비스입니다.
 
----
+## 데모
 
-## 📌 프로젝트 소개
+[▶ 데모 영상 보기](<영상링크>) (YouTube, 일부 공개)
 
-**시선추적 기반 관심도 분석 시스템**은  
-**소비자의 시선 데이터를 분석하여 상품별 주목도 순위를 시각화**하고,  
-이를 통해 **점주는 마케팅 전략 수립**, **손님은 인기 상품 확인 및 구매 편의성 향상**을 경험할 수 있는 웹 기반 솔루션입니다.
+<!-- 스크린샷 파일을 docs/images/ 에 추가한 뒤 아래 주석을 해제하세요.
+| 순위 화면 | 대시보드 |
+|---|---|
+| ![rankings](docs/images/rankings.png) | ![dashboard](docs/images/dashboard.png) |
+| **시간대/전환율 비교** | **바코드 프로모션** |
+| ![comparison](docs/images/comparison.png) | ![promotion](docs/images/promotion.png) |
+-->
 
----
+## 프로젝트 소개
 
-## ⚙️ 사용 기술
+편의점 같은 소매 매장에서는 어떤 상품이 손님의 눈길을 끄는지, 그 관심이 실제 구매로 이어지는지 알기 어렵습니다.
+이 프로젝트는 매장 영상에서 추출한 시선추적 결과와 판매 데이터를 한 화면에서 비교해 점주가 진열·프로모션 판단에 참고할 수 있게 하는 것을 목표로 했습니다.
+시선 분석은 AI 모델이 담당하고, 이 저장소의 웹은 그 결과 CSV를 읽어 시각화하는 부분입니다.
+졸업 프로젝트로 진행했으며 2025.04부터 개발했습니다.
 
-### 🖥 백엔드 - Java Spring Boot
-- RESTful API 기반 설계로 **시선 분석, 바코드 처리, 점주 인증 등 서버 로직** 구현
-- `Controller-Service-Repository` 구조로 역할 분리
-- **경험**: 클라이언트와의 통신 흐름 및 구조적인 백엔드 아키텍처 설계 능력 강화
+## 팀과 내 역할
 
-### 🧩 템플릿 엔진 - Thymeleaf
-- 서버 측에서 **초기 HTML을 동적으로 구성**
-- Spring에서 전달된 데이터(CSV, 사용자 정보 등)를 템플릿에 바인딩
-- **역할 분리**: JS는 인터랙션 처리에 집중, 템플릿은 초기 데이터 렌더링 담당
+팀 2명 프로젝트입니다.
 
-### 💻 프론트엔드 - JavaScript (Vanilla)
-- 실시간 **바코드 인식**, UI 렌더링, 사용자 이벤트 처리
-- `fetch()` 기반 서버 통신 구현
-- **경험**: 사용자 반응에 따른 동적 UI 제어 및 서버-클라이언트 간 흐름 직접 구현
+| 구분 | 내용 |
+|---|---|
+| 내가 담당 | 웹 서비스 전체 (프론트엔드 + 백엔드): 순위·대시보드 화면, 점주 인증, 비교/전환율 화면, 바코드 프로모션, 데이터 소스 추상화, 배포 설정 |
+| 팀원 담당 | 시선 인식 AI 모델 (별도 저장소, 이 저장소에 코드 없음) |
+| 맞닿는 지점 | AI 쪽이 만든 시선추적 결과 CSV(`gaze-tracking_<날짜>_<시작시>-<종료시>.csv`)를 웹이 읽어 표시 |
 
-### 🌐 마크업 - HTML/CSS
-- HTML 시맨틱 태그를 기반으로 **명확한 구조 설계**
-- Flex/Grid로 테이블 중심의 UI와 반응형 버튼 레이아웃 구현
-- **경험**: 사용자 중심의 실서비스 수준 UI 설계 능력 향상
+## 주요 기능
 
----
+- **순위 화면**: 가장 최근 시선추적 CSV를 읽어 상품별 주목도 순위를 표로 보여주며, 카테고리와 가격 범위로 필터링합니다.
+- **점주 인증**: 사업자번호 확인 후 비밀번호를 설정하고, 비밀번호는 BCrypt로 해시해 MongoDB에 저장합니다.
+- **대시보드**: 영상 목록 재생, 날짜·시간대·카테고리별 시선 순위와 판매 순위 비교.
+- **구매 전환율**: 상품별 판매 수량을 시선추적 수로 나눠 전환율을 계산합니다.
+- **바코드 프로모션**: 브라우저 카메라로 바코드를 인식해 해당 상품의 프로모션 페이지로 이동합니다. 카메라가 필요해 데모 영상에는 포함하지 않았습니다.
 
-## 🔑 주요 기능
+## 기술 스택
 
-### 📊 메인 랭킹 페이지
-- **1시간 주기 자동 업로드된 CSV 파일 중 최신 데이터 표시**
-- 상품 카테고리 및 가격 기반 **필터링 기능 제공**
-- 테이블 형태로 **주목도 순위 시각화**
+| 영역 | 사용 기술 |
+|---|---|
+| Backend | Java 17, Spring Boot 3.4.4, Spring Web, Spring Security(`BCryptPasswordEncoder`), Spring WebFlux(`WebClient`), Lombok |
+| View | Thymeleaf, Vanilla JavaScript, Bootstrap 5, PapaParse(CSV 파싱), html5-qrcode(바코드 스캔) |
+| Database | MongoDB (Spring Data MongoDB) |
+| 외부 연동 | Google Drive API v3 |
+| Build / Deploy | Maven Wrapper, Docker (multi-stage build), Render 배포를 전제로 한 설정 |
 
-### 🎯 프로모션 페이지
-- 페이지 진입 시 **카메라 자동 실행 및 바코드 인식**
-- *(예정)* 해당 바코드에 연동된 **진행 중인 프로모션 정보 표시**
+## 아키텍처
 
-### 🛠 점주 페이지
-- 점주 **인증 및 비밀번호 설정 기능**
-- 로그인 후 점주 전용 대시보드 제공:
-  - 시선 분석이 적용된 **비디오 목록 확인**
-  - 상품별 주목도 순위 **CSV 다운로드**
+데이터 소스는 `DataSourceService` 인터페이스로 분리되어 있고, 설정값 `app.data-source`로 구현체를 고릅니다.
+컨트롤러는 구현체를 알지 못하므로 Drive 없이도 같은 화면이 동작합니다.
 
----
+```mermaid
+flowchart LR
+    AI["시선 인식 AI 모델<br/>(팀원 담당, 별도 저장소)"] -. "분석 결과 CSV" .-> Drive[(Google Drive)]
+    AI -. "분석 결과 CSV" .-> Sample[(sample-data/)]
 
-## 🚀 샘플 데이터로 실행하는 법
+    Browser["Browser<br/>Thymeleaf + Vanilla JS"] --> Ctrl["Controllers<br/>(순위 / 대시보드 / 점주 인증 / 프로모션)"]
+    Ctrl --> DS{{"DataSourceService<br/>(interface)"}}
+    DS -- "app.data-source=drive" --> DriveImpl["DriveDataSourceService"]
+    DS -- "app.data-source=local (기본값)" --> LocalImpl["LocalDataSourceService"]
+    DriveImpl --> Drive
+    LocalImpl --> Sample
+    Ctrl --> Repo["StoreRepository"] --> Mongo[(MongoDB)]
+```
 
-Google Drive 인증 파일이나 개인 Drive 폴더 없이 바로 실행해 볼 수 있는 **로컬 샘플 데이터 모드**입니다(기본값).
+점선은 이 저장소 밖에서 일어나는 흐름이며, AI 쪽이 CSV를 어떤 방식으로 올리는지는 이 저장소에서 확정하지 않았습니다.
 
-> ⚠️ `sample-data/`의 CSV, 데모 점주 계정(매장 코드, 사업자번호, 비밀번호)은 모두 **시연용 가짜 데이터**이며 실제 매장·판매 정보가 아닙니다.
+## 샘플 데이터로 실행하는 법
+
+Google Drive 인증 파일 없이 바로 실행해 볼 수 있는 **로컬 샘플 데이터 모드**입니다(기본값).
+
+> `sample-data/`의 CSV와 아래 데모 점주 계정은 모두 시연용 **가상 데이터**이며 실제 매장·판매 정보가 아닙니다.
 
 ### 필요한 환경
-- JDK 17 이상 (프로젝트는 Maven Wrapper 사용, Maven 별도 설치 불필요)
-- Docker (MongoDB 실행용) 또는 로컬에 설치된 MongoDB
 
-### 실행 순서
+- JDK 17 이상 (Maven은 Wrapper를 사용하므로 별도 설치 불필요)
+- Docker 또는 로컬에 설치된 MongoDB
+
+### 실행
+
 1. MongoDB 실행
    ```
    docker run -d -p 27017:27017 mongo
    ```
-2. 애플리케이션 실행 (Windows PowerShell 기준)
+2. 애플리케이션 실행
    ```
+   # Windows (PowerShell)
    .\mvnw.cmd spring-boot:run
-   ```
-   macOS/Linux는 `./mvnw spring-boot:run`
-3. 접속
-   - 메인 랭킹: http://localhost:8080/store/B06/rankings
-   - 점주 인증: http://localhost:8080/store/B06/owner
-   - 점주 대시보드: http://localhost:8080/store/B06/owner_dashboard
-   - 영상 목록: http://localhost:8080/store/B06/dashboard_video
-   - 비교/전환율 분석: http://localhost:8080/store/B06/dashboard_comparison (날짜 `2025-01-15` 선택)
 
-MongoDB 접속 주소를 바꾸려면 환경변수 `MONGODB_URI`를 지정합니다(기본값 `mongodb://localhost:27017/gaze_demo`).
+   # macOS / Linux
+   ./mvnw spring-boot:run
+   ```
+3. 접속
+
+   | 화면 | URL |
+   |---|---|
+   | 순위 | http://localhost:8080/store/B06/rankings |
+   | 점주 인증 | http://localhost:8080/store/B06/owner |
+   | 대시보드 | http://localhost:8080/store/B06/owner_dashboard |
+   | 영상 목록 | http://localhost:8080/store/B06/dashboard_video |
+   | 비교 / 전환율 | http://localhost:8080/store/B06/dashboard_comparison (날짜 `2025-01-15` 선택) |
 
 ### 데모 점주 계정
-첫 실행 시 `stores` 컬렉션이 비어 있으면 자동 생성됩니다.
+
+첫 실행 시 `stores` 컬렉션이 비어 있으면 자동으로 생성됩니다. 모두 가상의 값입니다.
 
 | 항목 | 값 |
 |---|---|
@@ -95,39 +115,36 @@ MongoDB 접속 주소를 바꾸려면 환경변수 `MONGODB_URI`를 지정합니
 | 사업자번호 | `000-00-00000` |
 | 비밀번호 | `demo1234` |
 
-### 샘플 데이터 구성
-- `sample-data/gaze-tracking_2025-01-15_09-10.csv` 등: 시간대별 시선추적 결과
-- `sample-data/real-sale_latest.csv`, `real-sale_by_day_latest.csv`: 판매 결과
-- 영상(`*.mp4`)은 저장소에 포함되어 있지 않습니다. `sample-data/`에 mp4 파일을 넣으면 영상 목록에 나타나고, 없으면 안내 문구가 표시됩니다.
-- 폴더 위치는 환경변수 `APP_LOCAL_DATA_DIR`로 바꿀 수 있습니다.
+### 설정과 샘플 데이터
 
-### Google Drive 모드로 바꾸기
-```
-APP_DATA_SOURCE=drive
-DRIVE_FOLDER_ID=<Drive 폴더 ID>
-MONGODB_URI=<MongoDB 접속 URI>
-```
-위 환경변수를 지정하고, 기존처럼 Google 인증 파일(`/etc/secrets/credentials.json` 또는 `src/main/resources/credentials.json`)을 준비합니다. Drive 모드에서는 데모 점주가 자동 생성되지 않습니다.
+| 환경변수 | 설명 | 기본값 |
+|---|---|---|
+| `MONGODB_URI` | MongoDB 접속 URI | `mongodb://localhost:27017/gaze_demo` |
+| `APP_LOCAL_DATA_DIR` | 샘플 데이터 폴더 | `sample-data` |
+| `APP_DATA_SOURCE` | `local` 또는 `drive` | `local` |
 
----
+- `sample-data/gaze-tracking_*.csv`: 시간대별 시선추적 결과
+- `sample-data/real-sale_*.csv`: 판매 결과
+- 영상(`*.mp4`)은 저장소에서 제외됩니다. `sample-data/`에 mp4 파일을 넣으면 영상 목록에 나타나고, 없으면 안내 문구가 표시됩니다.
 
-## 🏗 시스템 아키텍처
-![Image](https://github.com/user-attachments/assets/bfc43480-4249-4bf9-8c80-75b6d9c3da86)
+### Google Drive 모드
 
+`APP_DATA_SOURCE=drive`, `DRIVE_FOLDER_ID`, `MONGODB_URI`를 환경변수로 지정하고 Google 인증 파일을 준비하면 Drive 모드로 동작합니다. Drive 모드에서는 데모 점주가 자동 생성되지 않습니다.
+촬영 순서는 [DEMO_GUIDE.md](DEMO_GUIDE.md)를 참고하세요.
 
----
+## 한계와 개선 계획
 
-### 스크린샷 이미지
+코드를 다시 읽고 확인한 한계입니다.
 
-- 메인 랭킹 페이지
-  
-  ![Image](https://github.com/user-attachments/assets/c0fb2d91-1fdd-4a8b-bf28-a1102c067bc1)
-- 프로모션 페이지
-  
-  ![Image](https://github.com/user-attachments/assets/0d6f1a6f-af50-419e-aad6-e098671fc010)
-- 점주 인증 페이지
-  
-  ![Image](https://github.com/user-attachments/assets/a5143f23-0ff6-497b-9699-3478c08f71b9)
-- 점주 대시보드 페이지
-  
-  ![Image](https://github.com/user-attachments/assets/4fa1b392-7e34-4385-ab3d-e12c88ce47f0)
+- **점주 페이지에 서버측 인증·인가가 없습니다.** 로그인 성공 후 이동은 클라이언트 JS가 처리하고, `SecurityConfig`는 모든 요청을 허용합니다. 대시보드 URL을 직접 열면 접근됩니다.
+- **매장 코드가 `B06`으로 고정**되어 있어 다중 매장을 지원하지 않습니다.
+- **Drive 응답 캐시가 없습니다.** 요청마다 파일 목록과 내용을 Drive에서 다시 가져옵니다.
+- **순위 화면의 CSV 파싱이 단순 `split(",")`** 입니다. 값에 쉼표나 따옴표가 있으면 깨질 수 있습니다. (비교 화면은 PapaParse 사용)
+- **테스트가 부족합니다.** 현재는 컨텍스트 로딩 테스트 1개뿐입니다.
+
+개선 계획:
+
+1. Spring Security 세션 로그인으로 점주 경로를 서버에서 보호
+2. CSV 파싱을 서버의 공용 컴포넌트로 통합
+3. 데이터 소스 응답 캐시 도입
+4. `DataSourceService` 구현체와 인증 API 테스트 추가
