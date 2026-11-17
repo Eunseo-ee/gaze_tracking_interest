@@ -57,6 +57,60 @@
 
 ---
 
+## 🚀 샘플 데이터로 실행하는 법
+
+Google Drive 인증 파일이나 개인 Drive 폴더 없이 바로 실행해 볼 수 있는 **로컬 샘플 데이터 모드**입니다(기본값).
+
+> ⚠️ `sample-data/`의 CSV, 데모 점주 계정(매장 코드, 사업자번호, 비밀번호)은 모두 **시연용 가짜 데이터**이며 실제 매장·판매 정보가 아닙니다.
+
+### 필요한 환경
+- JDK 17 이상 (프로젝트는 Maven Wrapper 사용, Maven 별도 설치 불필요)
+- Docker (MongoDB 실행용) 또는 로컬에 설치된 MongoDB
+
+### 실행 순서
+1. MongoDB 실행
+   ```
+   docker run -d -p 27017:27017 mongo
+   ```
+2. 애플리케이션 실행 (Windows PowerShell 기준)
+   ```
+   .\mvnw.cmd spring-boot:run
+   ```
+   macOS/Linux는 `./mvnw spring-boot:run`
+3. 접속
+   - 메인 랭킹: http://localhost:8080/store/B06/rankings
+   - 점주 인증: http://localhost:8080/store/B06/owner
+   - 점주 대시보드: http://localhost:8080/store/B06/owner_dashboard
+   - 영상 목록: http://localhost:8080/store/B06/dashboard_video
+   - 비교/전환율 분석: http://localhost:8080/store/B06/dashboard_comparison (날짜 `2025-01-15` 선택)
+
+MongoDB 접속 주소를 바꾸려면 환경변수 `MONGODB_URI`를 지정합니다(기본값 `mongodb://localhost:27017/gaze_demo`).
+
+### 데모 점주 계정
+첫 실행 시 `stores` 컬렉션이 비어 있으면 자동 생성됩니다.
+
+| 항목 | 값 |
+|---|---|
+| 매장 코드 | `B06` |
+| 사업자번호 | `000-00-00000` |
+| 비밀번호 | `demo1234` |
+
+### 샘플 데이터 구성
+- `sample-data/gaze-tracking_2025-01-15_09-10.csv` 등: 시간대별 시선추적 결과
+- `sample-data/real-sale_latest.csv`, `real-sale_by_day_latest.csv`: 판매 결과
+- 영상(`*.mp4`)은 저장소에 포함되어 있지 않습니다. `sample-data/`에 mp4 파일을 넣으면 영상 목록에 나타나고, 없으면 안내 문구가 표시됩니다.
+- 폴더 위치는 환경변수 `APP_LOCAL_DATA_DIR`로 바꿀 수 있습니다.
+
+### Google Drive 모드로 바꾸기
+```
+APP_DATA_SOURCE=drive
+DRIVE_FOLDER_ID=<Drive 폴더 ID>
+MONGODB_URI=<MongoDB 접속 URI>
+```
+위 환경변수를 지정하고, 기존처럼 Google 인증 파일(`/etc/secrets/credentials.json` 또는 `src/main/resources/credentials.json`)을 준비합니다. Drive 모드에서는 데모 점주가 자동 생성되지 않습니다.
+
+---
+
 ## 🏗 시스템 아키텍처
 ![Image](https://github.com/user-attachments/assets/bfc43480-4249-4bf9-8c80-75b6d9c3da86)
 
