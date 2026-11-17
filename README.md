@@ -4,15 +4,30 @@
 
 ## 데모
 
-[▶ 데모 영상 보기](<영상링크>) (YouTube, 일부 공개)
+[▶ 유튜브에서 데모 영상 보기](https://youtu.be/BK1YHEL5u4g)
 
-<!-- 스크린샷 파일을 docs/images/ 에 추가한 뒤 아래 주석을 해제하세요.
-| 순위 화면 | 대시보드 |
-|---|---|
-| ![rankings](docs/images/rankings.png) | ![dashboard](docs/images/dashboard.png) |
-| **시간대/전환율 비교** | **바코드 프로모션** |
-| ![comparison](docs/images/comparison.png) | ![promotion](docs/images/promotion.png) |
--->
+<table>
+  <tr>
+    <td align="center"><b>관심도 순위 화면</b></td>
+    <td align="center"><b>점주 대시보드</b></td>
+    <td align="center"><b>영상 업로드·분석</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/rankings.png" width="250"></td>
+    <td><img src="docs/images/owner_dashboard.png" width="250"></td>
+    <td><img src="docs/images/owner_upload.png" width="250"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>딥러닝 분석 영상</b></td>
+    <td align="center"><b>실제판매와 비교</b></td>
+    <td align="center"><b>프로모션 페이지</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/owner_video.png" width="250"></td>
+    <td><img src="docs/images/owner_analysis.png" width="250"></td>
+    <td><img src="docs/images/promotion_barcode.png" width="250"></td>
+  </tr>
+</table>
 
 ## 프로젝트 소개
 
@@ -27,9 +42,9 @@
 
 | 구분 | 내용 |
 |---|---|
-| 내가 담당 | 웹 서비스 전체 (프론트엔드 + 백엔드): 순위·대시보드 화면, 점주 인증, 비교/전환율 화면, 바코드 프로모션, 데이터 소스 추상화, 배포 설정 |
-| 팀원 담당 | 시선 인식 AI 모델 (별도 저장소, 이 저장소에 코드 없음) |
-| 맞닿는 지점 | AI 쪽이 만든 시선추적 결과 CSV(`gaze-tracking_<날짜>_<시작시>-<종료시>.csv`)를 웹이 읽어 표시 |
+| 내 담당 | 웹 서비스 전체 (프론트엔드 + 백엔드): 순위·대시보드 화면, 점주 인증, 비교/전환율 화면, 바코드 프로모션, 데이터 소스 추상화, 배포 설정, 딥러닝 모델과 연동|
+| 팀원 담당 | 시선 인식 딥러닝 모델 개발 (별도 저장소, 이 저장소에 코드 없음) |
+| 맞닿는 지점 | 웹에서 딥러닝 모델에서 분석할 영상 업로드 하면 딥러닝 모델 쪽이 만든 시선추적 결과 CSV(`gaze-tracking_<날짜>_<시작시>-<종료시>.csv`)를 웹이 읽어 표시 |
 
 ## 주요 기능
 
@@ -131,20 +146,3 @@ Google Drive 인증 파일 없이 바로 실행해 볼 수 있는 **로컬 샘�
 
 `APP_DATA_SOURCE=drive`, `DRIVE_FOLDER_ID`, `MONGODB_URI`를 환경변수로 지정하고 Google 인증 파일을 준비하면 Drive 모드로 동작합니다. Drive 모드에서는 데모 점주가 자동 생성되지 않습니다.
 촬영 순서는 [DEMO_GUIDE.md](DEMO_GUIDE.md)를 참고하세요.
-
-## 한계와 개선 계획
-
-코드를 다시 읽고 확인한 한계입니다.
-
-- **점주 페이지에 서버측 인증·인가가 없습니다.** 로그인 성공 후 이동은 클라이언트 JS가 처리하고, `SecurityConfig`는 모든 요청을 허용합니다. 대시보드 URL을 직접 열면 접근됩니다.
-- **매장 코드가 `B06`으로 고정**되어 있어 다중 매장을 지원하지 않습니다.
-- **Drive 응답 캐시가 없습니다.** 요청마다 파일 목록과 내용을 Drive에서 다시 가져옵니다.
-- **순위 화면의 CSV 파싱이 단순 `split(",")`** 입니다. 값에 쉼표나 따옴표가 있으면 깨질 수 있습니다. (비교 화면은 PapaParse 사용)
-- **테스트가 부족합니다.** 현재는 컨텍스트 로딩 테스트 1개뿐입니다.
-
-개선 계획:
-
-1. Spring Security 세션 로그인으로 점주 경로를 서버에서 보호
-2. CSV 파싱을 서버의 공용 컴포넌트로 통합
-3. 데이터 소스 응답 캐시 도입
-4. `DataSourceService` 구현체와 인증 API 테스트 추가
