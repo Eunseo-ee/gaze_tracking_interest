@@ -51,7 +51,10 @@ function verifyBiz() {
     }
 
     fetch(`/api/verify-biznum?storeCode=${storeCode}&inputBizNum=${inputBizNum}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json();
+        })
         .then(data => {
             if (data.verified) {
                 document.getElementById("passwordSetForm").style.display = "block"; // ✅ 비번폼 보여주기
@@ -61,6 +64,7 @@ function verifyBiz() {
         })
         .catch(err => {
             console.error("요청 실패:", err);
+            alert("사업자번호 확인에 실패했습니다. 매장 코드와 서버 상태를 확인해주세요.");
         });
 }
 
@@ -75,10 +79,17 @@ function savePassword() {
             password: newPassword
         })
     })
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            return response.text();
+        })
         .then(msg => {
             document.getElementById("savePasswordMsg").innerText = "비밀번호가 저장되었습니다!";
             alert("이제부터 비밀번호로 로그인하실 수 있습니다.");
+        })
+        .catch(err => {
+            console.error("비밀번호 저장 실패:", err);
+            alert("비밀번호 저장에 실패했습니다.");
         });
 }
 // 비밀번호 입력창에서 엔터 누르면 submitPassword() 실행

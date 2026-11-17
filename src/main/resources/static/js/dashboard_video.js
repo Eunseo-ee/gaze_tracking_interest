@@ -1,9 +1,15 @@
 document.addEventListener("DOMContentLoaded", async function () {
+    const list = document.getElementById("driveVideoList");
     try {
         const response = await fetch("/api/drive/mp4-list");
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
         const videos = await response.json();
 
-        const list = document.getElementById("driveVideoList");
+        if (videos.length === 0) {
+            list.innerHTML = '<li style="color: gray;">등록된 영상이 없습니다. 샘플 데이터 모드에서는 sample-data/ 폴더에 mp4 파일을 넣으면 목록에 표시됩니다.</li>';
+        }
 
         videos.forEach(video => {
             const li = document.createElement("li");
@@ -16,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     } catch (err) {
         console.error("영상 목록 불러오기 실패:", err);
+        list.innerHTML = '<li style="color: #c0392b;">영상 목록을 불러오지 못했습니다</li>';
     }
 
     // ✅ 기본 미리보기 메시지 넣기
@@ -32,6 +39,18 @@ document.addEventListener("DOMContentLoaded", async function () {
 function playDriveVideo(name, webViewLink) {
     if (!webViewLink) {
         console.error("webViewLink 없음:", name);
+        return;
+    }
+
+    // 로컬 샘플 모드: 서버가 스트리밍하는 영상은 <video>로 재생
+    if (webViewLink.startsWith("/")) {
+        const localContainer = document.getElementById("videoContainer");
+        localContainer.innerHTML = "";
+        const video = document.createElement("video");
+        video.controls = true;
+        video.style.width = "100%";
+        video.src = webViewLink;
+        localContainer.appendChild(video);
         return;
     }
 
@@ -54,6 +73,7 @@ function playDriveVideo(name, webViewLink) {
 
     container.appendChild(iframe);
 }
+
 
 
 // 페이지 로드시 자동 실행

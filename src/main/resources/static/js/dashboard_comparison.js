@@ -147,6 +147,9 @@ async function loadConversionTable() {
 
 async function fetchAndParseCSV(url) {
     const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`파일 불러오기 실패 (${response.status}): ${url}`);
+    }
     const text = await response.text();
 
     const isGaze = url.includes("gaze-tracking");
